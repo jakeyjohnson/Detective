@@ -1,0 +1,857 @@
+/* =========================================================
+   So You Want To Be A Detective — application styles.
+   Every value references tokens.css. No hardcoded colour,
+   size, spacing or radius below this line.
+
+   Covers the operator-facing surfaces: landing/join, the
+   quiz builder, the host control room, the player device and
+   the shared leaderboard. The projection screen has its own
+   sheet (present.css) because it is a different medium.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   1. Reset & base
+   --------------------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+
+html{ -webkit-text-size-adjust: 100%; }
+
+body{
+  margin: 0;
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--fs-300);
+  line-height: var(--lh-normal);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4{
+  font-family: var(--font-display);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-tight);
+  text-transform: uppercase;
+  margin: 0;
+}
+h1{ font-size: var(--fs-700); }
+h2{ font-size: var(--fs-600); }
+h3{ font-size: var(--fs-500); }
+h4{ font-size: var(--fs-400); }
+
+p{ margin: 0 0 var(--sp-4); }
+p:last-child{ margin-bottom: 0; }
+
+a{ color: var(--text-accent); text-decoration: none; }
+a:hover{ text-decoration: underline; }
+
+img, video{ max-width: 100%; display: block; }
+
+/* One focus treatment everywhere. Brass ring, offset so it
+   never sits on top of the element's own border. */
+:focus-visible{
+  outline: 2px solid var(--line-focus);
+  outline-offset: 2px;
+}
+:focus:not(:focus-visible){ outline: none; }
+
+/* ---------------------------------------------------------
+   2. Utilities
+   --------------------------------------------------------- */
+.visually-hidden{
+  position: absolute; width: 1px; height: 1px;
+  margin: -1px; padding: 0; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+.is-hidden{ display: none !important; }
+
+/* The procedural furniture: case numbers, field labels, status
+   text. Typewriter mono, wide tracking, small. This single class
+   carries most of the app's character. */
+.label{
+  font-family: var(--font-mono);
+  font-size: var(--fs-100);
+  letter-spacing: var(--ls-widest);
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+.label--accent{ color: var(--text-accent); }
+.label--bright{ color: var(--text-secondary); }
+
+.stack{ display: flex; flex-direction: column; gap: var(--sp-4); }
+.stack--tight{ gap: var(--sp-2); }
+.stack--loose{ gap: var(--sp-6); }
+.row{ display: flex; align-items: center; gap: var(--sp-3); }
+.row--between{ justify-content: space-between; }
+.row--wrap{ flex-wrap: wrap; }
+.row--end{ justify-content: flex-end; }
+.spacer{ flex: 1 1 auto; }
+.muted{ color: var(--text-secondary); }
+.faint{ color: var(--text-faint); }
+.mono{ font-family: var(--font-mono); }
+.nowrap{ white-space: nowrap; }
+.center{ text-align: center; }
+
+/* ---------------------------------------------------------
+   3. Shell: top bar + page container
+   --------------------------------------------------------- */
+.topbar{
+  position: sticky; top: 0; z-index: 40;
+  display: flex; align-items: center; gap: var(--sp-4);
+  height: var(--h-topbar);
+  padding: 0 var(--sp-5);
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--line-primary);
+}
+
+.brand{
+  display: flex; align-items: center; gap: var(--sp-3);
+  font-family: var(--font-display);
+  font-size: var(--fs-400);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+  color: var(--text-primary);
+}
+.brand:hover{ text-decoration: none; color: var(--text-accent); }
+
+/* The magnifying-glass mark, drawn in CSS: a brass ring plus a
+   rotated handle. Cheap, sharp at any size, no asset to ship. */
+.brand__mark{
+  position: relative;
+  width: 1.25em; height: 1.25em;
+  flex: 0 0 auto;
+}
+.brand__mark::before{
+  content: ''; position: absolute;
+  inset: 0 0.3em 0.3em 0;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+}
+.brand__mark::after{
+  content: ''; position: absolute;
+  right: 0.12em; bottom: 0.04em;
+  width: 2px; height: 0.45em;
+  background: var(--accent);
+  transform: rotate(-45deg);
+  transform-origin: bottom;
+}
+
+.topbar__nav{ display: flex; align-items: center; gap: var(--sp-1); }
+
+.page{
+  max-width: var(--w-content);
+  margin: 0 auto;
+  padding: var(--sp-7) var(--sp-5) var(--sp-9);
+}
+.page--wide{ max-width: var(--w-wide); }
+.page--narrow{ max-width: var(--w-narrow); }
+
+.page__head{
+  margin-bottom: var(--sp-6);
+  padding-bottom: var(--sp-5);
+  border-bottom: 1px solid var(--line-primary);
+}
+.page__head .label{ display: block; margin-bottom: var(--sp-2); }
+.page__head p{ margin-top: var(--sp-3); color: var(--text-secondary); max-width: 56ch; }
+
+/* ---------------------------------------------------------
+   4. Panels & cards
+   --------------------------------------------------------- */
+.panel{
+  background: var(--bg-panel);
+  border: 1px solid var(--line-primary);
+  border-radius: var(--radius-md);
+  padding: var(--sp-5);
+}
+.panel--inset{ background: var(--bg-inset); }
+.panel--flush{ padding: 0; overflow: hidden; }
+.panel--lamp{ background-image: var(--bg-lamp); }
+
+.panel__head{
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-4) var(--sp-5);
+  border-bottom: 1px solid var(--line-secondary);
+}
+.panel__body{ padding: var(--sp-5); }
+.panel__foot{
+  padding: var(--sp-4) var(--sp-5);
+  border-top: 1px solid var(--line-secondary);
+  background: var(--bg-inset);
+}
+
+/* Evidence tag — the little brass-cornered marker used for a
+   case file's reference number and for question-type badges. */
+.tag{
+  display: inline-flex; align-items: center; gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-100);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  background: var(--bg-inset);
+  border: 1px solid var(--line-secondary);
+  border-radius: var(--radius-sm);
+}
+.tag--accent{
+  color: var(--accent);
+  background: var(--wash-accent);
+  border-color: var(--line-accent);
+}
+.tag--live{
+  color: var(--state-live);
+  background: var(--wash-live);
+  border-color: var(--state-live);
+}
+.tag--correct{ color: var(--state-correct); background: var(--wash-correct); border-color: var(--state-correct); }
+.tag--wrong{ color: var(--state-wrong); background: var(--wash-wrong); border-color: var(--state-wrong); }
+
+/* Live pulse dot — the only looping animation in the system.
+   Signals "this page is receiving updates", which is worth a
+   heartbeat; everything else is a one-shot state change. */
+.pulse{
+  width: 0.5em; height: 0.5em; border-radius: 50%;
+  background: currentColor;
+  animation: pulse 1.8s var(--ease-in-out) infinite;
+}
+@keyframes pulse{
+  0%, 100%{ opacity: 1; transform: scale(1); }
+  50%{ opacity: 0.35; transform: scale(0.75); }
+}
+
+/* ---------------------------------------------------------
+   5. Buttons
+   --------------------------------------------------------- */
+.btn{
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--sp-2);
+  padding: var(--sp-3) var(--sp-5);
+  font-family: var(--font-mono);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--text-primary);
+  background: var(--bg-raised);
+  border: 1px solid var(--line-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out),
+              border-color var(--dur-fast) var(--ease-out),
+              color var(--dur-fast) var(--ease-out),
+              transform var(--dur-fast) var(--ease-out);
+  -webkit-user-select: none; user-select: none;
+  text-align: center;
+}
+.btn:hover{ background: var(--bg-panel); border-color: var(--line-accent); color: var(--text-accent); text-decoration: none; }
+.btn:active{ transform: translateY(1px); }
+.btn[disabled], .btn[aria-disabled="true"]{
+  opacity: 0.4; cursor: not-allowed; transform: none;
+  background: var(--bg-inset); border-color: var(--line-secondary); color: var(--text-faint);
+}
+
+.btn--primary{
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--text-inverse);
+}
+.btn--primary:hover{ background: var(--accent-hover); border-color: var(--accent-hover); color: var(--text-inverse); }
+.btn--primary:active{ background: var(--accent-active); border-color: var(--accent-active); }
+
+.btn--ghost{ background: transparent; }
+.btn--danger{ color: var(--state-wrong); border-color: var(--line-primary); background: transparent; }
+.btn--danger:hover{ background: var(--wash-wrong); border-color: var(--state-wrong); color: var(--state-wrong); }
+.btn--sm{ padding: var(--sp-2) var(--sp-3); font-size: var(--fs-100); }
+.btn--lg{ padding: var(--sp-4) var(--sp-6); font-size: var(--fs-300); }
+.btn--block{ width: 100%; }
+
+/* Icon-only square button — used for the builder's row controls
+   (move up/down/duplicate/delete) where a label would crowd. */
+.btn--icon{
+  padding: 0; width: 2rem; height: 2rem;
+  font-size: var(--fs-300); line-height: 1;
+}
+
+/* ---------------------------------------------------------
+   6. Forms
+   --------------------------------------------------------- */
+.field{ display: flex; flex-direction: column; gap: var(--sp-2); }
+.field__hint{ font-size: var(--fs-200); color: var(--text-faint); }
+.field__error{ font-size: var(--fs-200); color: var(--state-wrong); font-family: var(--font-mono); }
+
+.input, .select, .textarea{
+  width: 100%;
+  padding: var(--sp-3);
+  font-family: var(--font-body);
+  font-size: var(--fs-300);
+  color: var(--text-primary);
+  background: var(--bg-inset);
+  border: 1px solid var(--line-primary);
+  border-radius: var(--radius-sm);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.input:hover, .select:hover, .textarea:hover{ border-color: var(--line-primary); }
+.input:focus, .select:focus, .textarea:focus{ border-color: var(--line-focus); }
+.input::placeholder, .textarea::placeholder{ color: var(--text-faint); }
+.textarea{ resize: vertical; min-height: 5rem; line-height: var(--lh-normal); }
+
+.select{
+  appearance: none;
+  padding-right: var(--sp-6);
+  /* chevron drawn with a gradient pair so there's no SVG asset
+     and it inherits no colour it shouldn't */
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--text-secondary) 50%),
+    linear-gradient(135deg, var(--text-secondary) 50%, transparent 50%);
+  background-position: right var(--sp-4) center, right var(--sp-3) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+.input--mono{ font-family: var(--font-mono); letter-spacing: var(--ls-wide); }
+.input--code{
+  font-family: var(--font-mono);
+  font-size: var(--fs-700);
+  letter-spacing: 0.3em;
+  text-align: center;
+  text-transform: uppercase;
+  padding: var(--sp-4);
+}
+.input--num{ max-width: 7rem; }
+
+/* Checkbox / radio rows, sized for touch on the player device */
+.check{
+  display: flex; align-items: flex-start; gap: var(--sp-3);
+  padding: var(--sp-2) 0;
+  cursor: pointer;
+  font-size: var(--fs-300);
+}
+.check input{
+  flex: 0 0 auto;
+  width: 1.125rem; height: 1.125rem;
+  margin: 0.15rem 0 0;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+.check__text{ color: var(--text-secondary); }
+.check input:checked ~ .check__text{ color: var(--text-primary); }
+
+.field-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--sp-4);
+}
+
+/* ---------------------------------------------------------
+   7. Tables (quiz list, team list, answer review)
+   --------------------------------------------------------- */
+.table{ width: 100%; border-collapse: collapse; font-size: var(--fs-200); }
+.table th{
+  font-family: var(--font-mono);
+  font-size: var(--fs-100);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  text-align: left;
+  font-weight: var(--fw-regular);
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--line-primary);
+  white-space: nowrap;
+}
+.table td{
+  padding: var(--sp-3) var(--sp-4);
+  border-bottom: 1px solid var(--line-secondary);
+  vertical-align: middle;
+}
+.table tbody tr:last-child td{ border-bottom: 0; }
+.table tbody tr:hover{ background: var(--bg-inset); }
+.table__num{ text-align: right; font-family: var(--font-mono); }
+.table__actions{ text-align: right; white-space: nowrap; }
+
+/* ---------------------------------------------------------
+   8. Empty / loading states
+   --------------------------------------------------------- */
+.empty{
+  padding: var(--sp-7) var(--sp-5);
+  text-align: center;
+  color: var(--text-faint);
+  border: 1px dashed var(--line-primary);
+  border-radius: var(--radius-md);
+}
+.empty h3{ color: var(--text-secondary); margin-bottom: var(--sp-3); }
+.empty p{ max-width: 44ch; margin-inline: auto; font-size: var(--fs-200); }
+
+/* ---------------------------------------------------------
+   9. Notices
+   --------------------------------------------------------- */
+.notice{
+  display: flex; gap: var(--sp-3);
+  padding: var(--sp-4);
+  font-size: var(--fs-200);
+  border: 1px solid var(--line-primary);
+  border-left-width: 3px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-inset);
+  color: var(--text-secondary);
+}
+.notice--accent{ border-left-color: var(--accent); }
+.notice--wrong{ border-left-color: var(--state-wrong); background: var(--wash-wrong); color: var(--text-primary); }
+.notice--correct{ border-left-color: var(--state-correct); background: var(--wash-correct); color: var(--text-primary); }
+
+/* Transient toast, bottom-centre so it never covers the host's
+   controls (which live top and right). */
+.toast-host{
+  position: fixed; left: 50%; bottom: var(--sp-5);
+  transform: translateX(-50%);
+  z-index: 90;
+  display: flex; flex-direction: column; gap: var(--sp-2);
+  align-items: center;
+  pointer-events: none;
+}
+.toast{
+  padding: var(--sp-3) var(--sp-5);
+  font-family: var(--font-mono);
+  font-size: var(--fs-200);
+  letter-spacing: var(--ls-wide);
+  background: var(--bg-raised);
+  border: 1px solid var(--line-accent);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  animation: toast-in var(--dur-base) var(--ease-out);
+}
+.toast--wrong{ border-color: var(--state-wrong); color: var(--state-wrong); }
+@keyframes toast-in{
+  from{ opacity: 0; transform: translateY(var(--sp-3)); }
+  to{ opacity: 1; transform: none; }
+}
+
+/* ---------------------------------------------------------
+   10. Landing / join
+   --------------------------------------------------------- */
+.hero{
+  min-height: calc(100vh - var(--h-topbar));
+  display: grid; place-items: center;
+  padding: var(--sp-7) var(--sp-5);
+  background-image: var(--bg-lamp);
+}
+.hero__inner{ width: 100%; max-width: var(--w-narrow); text-align: center; }
+.hero__title{
+  font-size: clamp(2rem, 7vw, 4.25rem);
+  margin-bottom: var(--sp-4);
+}
+/* The show's title is a question, so the last word carries the
+   brass. Not decoration — it's the read order cue. */
+.hero__title em{ font-style: normal; color: var(--accent); }
+.hero__sub{ color: var(--text-secondary); margin-bottom: var(--sp-7); }
+
+.role-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: var(--sp-3);
+  margin-top: var(--sp-6);
+  text-align: left;
+}
+.role-card{
+  display: block;
+  padding: var(--sp-4);
+  background: var(--bg-panel);
+  border: 1px solid var(--line-primary);
+  border-radius: var(--radius-md);
+  transition: border-color var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out);
+}
+.role-card:hover{ border-color: var(--line-accent); background: var(--bg-raised); text-decoration: none; }
+.role-card h3{ font-size: var(--fs-400); margin-bottom: var(--sp-2); color: var(--text-primary); }
+.role-card p{ font-size: var(--fs-200); color: var(--text-faint); margin: 0; }
+
+/* ---------------------------------------------------------
+   11. Builder
+   --------------------------------------------------------- */
+.builder{
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20rem;
+  gap: var(--sp-5);
+  align-items: start;
+}
+.builder__side{ position: sticky; top: calc(var(--h-topbar) + var(--sp-5)); }
+
+@media (max-width: 62rem){
+  .builder{ grid-template-columns: minmax(0, 1fr); }
+  .builder__side{ position: static; }
+}
+
+.round{
+  border: 1px solid var(--line-primary);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+  margin-bottom: var(--sp-5);
+}
+.round__head{
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-4);
+  border-bottom: 1px solid var(--line-secondary);
+  background: var(--bg-inset);
+}
+.round__title{
+  flex: 1 1 auto;
+  font-family: var(--font-display);
+  font-size: var(--fs-500);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-tight);
+  color: var(--text-primary);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  padding: var(--sp-1) var(--sp-2);
+  min-width: 0;
+}
+.round__title:hover{ border-color: var(--line-secondary); }
+.round__title:focus{ border-color: var(--line-focus); background: var(--bg-page); }
+.round__body{ padding: var(--sp-4); }
+
+/* Question row — collapsed by default so a 60-question show is
+   still scannable; expands in place to the full editor. */
+.qrow{
+  border: 1px solid var(--line-secondary);
+  border-radius: var(--radius-sm);
+  background: var(--bg-inset);
+  margin-bottom: var(--sp-3);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.qrow:last-child{ margin-bottom: 0; }
+.qrow[open]{ border-color: var(--line-accent); }
+
+.qrow__summary{
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3);
+  cursor: pointer;
+  list-style: none;
+}
+.qrow__summary::-webkit-details-marker{ display: none; }
+.qrow__summary:hover{ background: var(--bg-raised); }
+.qrow__n{
+  flex: 0 0 auto;
+  width: 1.75rem; height: 1.75rem;
+  display: grid; place-items: center;
+  font-family: var(--font-mono);
+  font-size: var(--fs-100);
+  color: var(--text-faint);
+  background: var(--bg-page);
+  border: 1px solid var(--line-secondary);
+  border-radius: var(--radius-sm);
+}
+.qrow__text{
+  flex: 1 1 auto; min-width: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: var(--fs-300);
+}
+.qrow__text:empty::before{ content: 'Untitled question'; color: var(--text-faint); font-style: italic; }
+.qrow__body{
+  padding: var(--sp-4);
+  border-top: 1px solid var(--line-secondary);
+  display: flex; flex-direction: column; gap: var(--sp-4);
+}
+
+/* Option editor rows */
+.opt{
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-2);
+  background: var(--bg-page);
+  border: 1px solid var(--line-secondary);
+  border-radius: var(--radius-sm);
+}
+.opt--correct{ border-color: var(--state-correct); background: var(--wash-correct); }
+.opt__key{
+  flex: 0 0 auto;
+  width: 1.5rem; height: 1.5rem;
+  display: grid; place-items: center;
+  font-family: var(--font-mono);
+  font-size: var(--fs-100);
+  color: var(--text-faint);
+  border: 1px solid var(--line-secondary);
+  border-radius: var(--radius-sm);
+}
+.opt .input{ flex: 1 1 auto; }
+
+.type-picker{
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: var(--sp-2);
+}
+.type-btn{
+  display: flex; flex-direction: column; gap: var(--sp-1);
+  padding: var(--sp-3);
+  text-align: left;
+  background: var(--bg-inset);
+  border: 1px solid var(--line-secondary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.type-btn:hover{ border-color: var(--line-accent); background: var(--bg-raised); }
+.type-btn strong{
+  font-family: var(--font-mono);
+  font-size: var(--fs-200);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--text-primary);
+}
+.type-btn span{ font-size: var(--fs-100); color: var(--text-faint); line-height: var(--lh-snug); }
+
+/* ---------------------------------------------------------
+   12. Host control room
+   --------------------------------------------------------- */
+.host{
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: var(--sp-5);
+  align-items: start;
+}
+@media (max-width: 68rem){ .host{ grid-template-columns: minmax(0, 1fr); } }
+
+/* The host's primary read: what the room is looking at right
+   now, plus the answer. Bordered in brass because in a dark
+   venue the host glances, they don't read. */
+.now{
+  border: 1px solid var(--line-accent);
+  border-radius: var(--radius-md);
+  background: var(--bg-panel);
+  background-image: var(--bg-lamp);
+  padding: var(--sp-5);
+}
+.now__q{
+  font-family: var(--font-display);
+  font-size: var(--fs-600);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-tight);
+  margin: var(--sp-3) 0 var(--sp-4);
+}
+.now__answer{
+  padding: var(--sp-4);
+  background: var(--wash-correct);
+  border: 1px solid var(--state-correct);
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-400);
+}
+.now__answer .label{ color: var(--state-correct); display: block; margin-bottom: var(--sp-2); }
+
+/* Transport controls. Big, fixed order, never reflowing — the
+   host builds muscle memory over a show and a moving Next
+   button is a mis-press on stage. */
+.transport{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: var(--sp-3);
+  margin-top: var(--sp-5);
+}
+
+.timer{
+  font-family: var(--font-mono);
+  font-size: var(--fs-800);
+  font-weight: var(--fw-bold);
+  line-height: 1;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+.timer--warn{ color: var(--accent); }
+.timer--urgent{ color: var(--state-wrong); }
+
+/* Answer-review list: the host judging open answers */
+.judge{
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3);
+  border-bottom: 1px solid var(--line-secondary);
+}
+.judge:last-child{ border-bottom: 0; }
+.judge__team{ font-family: var(--font-mono); font-size: var(--fs-100); color: var(--text-faint); flex: 0 0 8rem; }
+.judge__answer{ flex: 1 1 auto; min-width: 0; font-size: var(--fs-300); word-break: break-word; }
+.judge--correct{ background: var(--wash-correct); }
+.judge--wrong{ background: var(--wash-wrong); }
+
+/* ---------------------------------------------------------
+   13. Player device
+   --------------------------------------------------------- */
+.play{
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  padding: var(--sp-4);
+  gap: var(--sp-4);
+  max-width: var(--w-narrow);
+  margin: 0 auto;
+}
+.play__head{
+  display: flex; align-items: center; justify-content: space-between;
+  gap: var(--sp-3);
+  padding-bottom: var(--sp-3);
+  border-bottom: 1px solid var(--line-primary);
+}
+.play__score{
+  font-family: var(--font-mono);
+  font-size: var(--fs-500);
+  font-weight: var(--fw-bold);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.play__main{ flex: 1 1 auto; display: flex; flex-direction: column; gap: var(--sp-4); justify-content: center; }
+.play__q{
+  font-family: var(--font-display);
+  font-size: var(--fs-600);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-tight);
+}
+
+/* Answer buttons are the whole interaction on a phone, so they
+   get a 3.5rem min height — comfortably above the 44px touch
+   target floor even with a one-character label. */
+.answer-btn{
+  display: flex; align-items: center; gap: var(--sp-3);
+  width: 100%;
+  min-height: 3.5rem;
+  padding: var(--sp-3) var(--sp-4);
+  font-family: var(--font-body);
+  font-size: var(--fs-400);
+  text-align: left;
+  color: var(--text-primary);
+  background: var(--bg-panel);
+  border: 1px solid var(--line-primary);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out),
+              background var(--dur-fast) var(--ease-out),
+              transform var(--dur-fast) var(--ease-out);
+}
+.answer-btn:hover{ border-color: var(--line-accent); }
+.answer-btn:active{ transform: scale(0.99); }
+.answer-btn[aria-pressed="true"]{
+  border-color: var(--accent);
+  background: var(--wash-accent);
+}
+.answer-btn[disabled]{ opacity: 0.45; cursor: not-allowed; }
+.answer-btn--correct{ border-color: var(--state-correct); background: var(--wash-correct); }
+.answer-btn--wrong{ border-color: var(--state-wrong); background: var(--wash-wrong); }
+.answer-btn__key{
+  flex: 0 0 auto;
+  width: 2rem; height: 2rem;
+  display: grid; place-items: center;
+  font-family: var(--font-mono);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  color: var(--accent);
+  border: 1px solid var(--line-primary);
+  border-radius: var(--radius-sm);
+}
+
+.answer-list{ display: flex; flex-direction: column; gap: var(--sp-3); }
+
+/* Ordering interaction: move up/down rather than drag. Drag is
+   unreliable on touch and impossible by keyboard; buttons work
+   everywhere and a quiz answer must not be a dexterity test. */
+.order-item{
+  display: flex; align-items: center; gap: var(--sp-3);
+  padding: var(--sp-3);
+  background: var(--bg-panel);
+  border: 1px solid var(--line-primary);
+  border-radius: var(--radius-sm);
+}
+.order-item__pos{
+  flex: 0 0 auto;
+  width: 2rem; height: 2rem;
+  display: grid; place-items: center;
+  font-family: var(--font-mono);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  color: var(--text-inverse);
+  background: var(--accent);
+  border-radius: var(--radius-sm);
+}
+.order-item__text{ flex: 1 1 auto; min-width: 0; font-size: var(--fs-300); }
+.order-item__moves{ display: flex; flex-direction: column; gap: 2px; }
+.order-item__moves .btn{ width: 1.75rem; height: 1.25rem; padding: 0; font-size: var(--fs-100); }
+
+/* ---------------------------------------------------------
+   14. Leaderboard (shared by the public page and host panel)
+   --------------------------------------------------------- */
+.board{ display: flex; flex-direction: column; gap: var(--sp-2); }
+
+.board__row{
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--bg-panel);
+  border: 1px solid var(--line-secondary);
+  border-radius: var(--radius-sm);
+  /* Rows reorder between questions. The transform transition
+     makes a team's climb legible as movement instead of the
+     board just being different — that's the drama of the format. */
+  transition: background var(--dur-base) var(--ease-out),
+              border-color var(--dur-base) var(--ease-out);
+}
+.board__row--top{
+  border-color: var(--line-accent);
+  background: var(--wash-accent);
+}
+.board__rank{
+  font-family: var(--font-mono);
+  font-size: var(--fs-400);
+  font-weight: var(--fw-bold);
+  color: var(--text-faint);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.board__row--top .board__rank{ color: var(--accent); }
+.board__team{
+  font-family: var(--font-display);
+  font-size: var(--fs-500);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-tight);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.board__score{
+  font-family: var(--font-mono);
+  font-size: var(--fs-500);
+  font-weight: var(--fw-bold);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.board__delta{
+  font-family: var(--font-mono);
+  font-size: var(--fs-100);
+  color: var(--state-correct);
+  margin-left: var(--sp-2);
+}
+.board__delta--none{ color: var(--text-faint); }
+
+/* ---------------------------------------------------------
+   15. Media in question editors / host preview
+   --------------------------------------------------------- */
+.media-frame{
+  position: relative;
+  background: var(--bg-page);
+  border: 1px solid var(--line-secondary);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.media-frame video, .media-frame img{ width: 100%; height: auto; display: block; }
+.media-frame audio{ width: 100%; display: block; }
+.media-frame--audio{ padding: var(--sp-4); }
+
+/* Print: only the leaderboard is ever worth printing (results
+   sheet for the venue). Everything else is stripped. */
+@media print{
+  .topbar, .transport, .btn{ display: none !important; }
+  body{ background: #fff; color: #000; }
+  .board__row{ border-color: #999; background: #fff; }
+  .board__team, .board__score, .board__rank{ color: #000; }
+}

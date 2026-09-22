@@ -1,0 +1,186 @@
+/* =========================================================
+   So You Want To Be A Detective — Design Tokens
+
+   Aesthetic philosophy: "Case File Noir". A gameshow staged in
+   an interrogation room. Deep ink ground, one pool of brass
+   lamplight as the only accent, typewriter mono for the
+   procedural furniture (case numbers, labels, timers) and tall
+   condensed display type for the thing the room is looking at.
+
+   Three rules this system exists to enforce:
+   1. Brass is the ONLY accent. Green/red appear exclusively at
+      the moment of reveal — never as decoration. Colour means
+      something here.
+   2. Projection is a different medium to a laptop. Every size
+      token has a `-proj` sibling scaled for a room reading it
+      from 10 metres away, not a person reading it from 50cm.
+   3. No light mode. A darkened room with a projector is the
+      fixed staging; a light theme would blow the screen out.
+      Single committed visual world.
+   ========================================================= */
+
+:root{
+
+  /* ---------- Raw palette ---------- */
+  --raw-ink-900:     #080A0E;   /* page ground — near-black, faintly blue */
+  --raw-ink-850:     #0C0F15;
+  --raw-ink-800:     #12161E;   /* panels */
+  --raw-ink-700:     #1A1F29;   /* inputs, nested surfaces */
+  --raw-ink-600:     #242A36;   /* raised / hover */
+
+  --raw-brass:       #E0A93B;   /* the interrogation lamp */
+  --raw-brass-hi:    #F2C25C;
+  --raw-brass-lo:    #B5842A;
+
+  --raw-paper:       #F2EDE1;   /* case-file cream, not pure white */
+  --raw-paper-dim:   #A8A49A;
+  --raw-paper-faint: #6E6B64;
+
+  --raw-jade:        #3FA97A;   /* correct — reveal only */
+  --raw-oxblood:     #C2413F;   /* incorrect — reveal only */
+  --raw-signal:      #4FB9CC;   /* "locked in" / live indicator */
+
+  /* ---------- Semantic surfaces ---------- */
+  --bg-page:       var(--raw-ink-900);
+  --bg-panel:      var(--raw-ink-800);
+  --bg-inset:      var(--raw-ink-700);
+  --bg-raised:     var(--raw-ink-600);
+  --bg-overlay:    rgba(8,10,14,0.92);
+
+  /* The lamp. Used behind the projected question so the room's
+     eye lands centre-screen. Deliberately a token, not an
+     inline gradient, so it stays identical on every surface. */
+  --bg-lamp: radial-gradient(
+    ellipse 120% 85% at 50% -10%,
+    rgba(224,169,59,0.16) 0%,
+    rgba(224,169,59,0.05) 38%,
+    transparent 72%
+  );
+
+  /* ---------- Text ---------- */
+  --text-primary:   var(--raw-paper);
+  --text-secondary: var(--raw-paper-dim);
+  --text-faint:     var(--raw-paper-faint);
+  --text-inverse:   var(--raw-ink-900);
+  --text-accent:    var(--raw-brass);
+
+  /* ---------- Lines ---------- */
+  --line-primary:   rgba(242,237,225,0.14);
+  --line-secondary: rgba(242,237,225,0.07);
+  --line-accent:    var(--raw-brass);
+  --line-focus:     var(--raw-brass-hi);
+
+  /* ---------- Accents & states ---------- */
+  --accent:         var(--raw-brass);
+  --accent-hover:   var(--raw-brass-hi);
+  --accent-active:  var(--raw-brass-lo);
+  --state-correct:  var(--raw-jade);
+  --state-wrong:    var(--raw-oxblood);
+  --state-live:     var(--raw-signal);
+
+  /* tinted washes — for answer cards at reveal, kept low so the
+     projected text stays the brightest thing on screen */
+  --wash-correct:   rgba(63,169,122,0.18);
+  --wash-wrong:     rgba(194,65,63,0.15);
+  --wash-accent:    rgba(224,169,59,0.12);
+  --wash-live:      rgba(79,185,204,0.14);
+
+  /* ---------- Type families ---------- */
+  --font-display: 'Oswald', 'Haettenschweiler', 'Arial Narrow', sans-serif;
+  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:    'Courier Prime', 'Courier New', ui-monospace, monospace;
+
+  /* ---------- Type scale (screen) ---------- */
+  --fs-100: 0.6875rem;  /* 11px — case labels, evidence tags */
+  --fs-200: 0.8125rem;  /* 13px — meta, helper text */
+  --fs-300: 0.9375rem;  /* 15px — body */
+  --fs-400: 1.0625rem;  /* 17px — lead body, answer options */
+  --fs-500: 1.375rem;   /* 22px — card titles */
+  --fs-600: 1.75rem;    /* 28px — section heads */
+  --fs-700: 2.25rem;    /* 36px — page titles */
+  --fs-800: 3rem;        /* 48px */
+
+  /* ---------- Type scale (projection) ----------
+     Viewport-relative so one stylesheet serves a 1080p projector,
+     a 4K TV and a laptop rehearsal without media queries. Clamped
+     at both ends: the min keeps it readable if someone opens the
+     projection view in a small window, the max stops it exploding
+     on ultrawide. */
+  --fs-proj-label:    clamp(0.75rem, 0.9vw + 0.3rem, 1.25rem);
+  --fs-proj-meta:     clamp(0.9rem,  1.1vw + 0.4rem, 1.75rem);
+  --fs-proj-option:   clamp(1.1rem,  1.7vw + 0.4rem, 2.75rem);
+  --fs-proj-question: clamp(1.6rem,  3.6vw + 0.5rem, 6rem);
+  --fs-proj-huge:     clamp(3rem,    11vw,           17rem);  /* countdown, join code */
+
+  /* ---------- Weights & tracking ---------- */
+  --fw-regular: 400;
+  --fw-medium:  500;
+  --fw-bold:    700;
+
+  --ls-tight:   -0.02em;
+  --ls-normal:  0;
+  --ls-wide:    0.06em;
+  --ls-widest:  0.18em;   /* mono case labels — the procedural look */
+
+  --lh-tight:   1.06;
+  --lh-snug:    1.25;
+  --lh-normal:  1.55;
+
+  /* ---------- Spacing (4px grid) ---------- */
+  --sp-1:  0.25rem;
+  --sp-2:  0.5rem;
+  --sp-3:  0.75rem;
+  --sp-4:  1rem;
+  --sp-5:  1.5rem;
+  --sp-6:  2rem;
+  --sp-7:  3rem;
+  --sp-8:  4rem;
+  --sp-9:  6rem;
+
+  /* ---------- Radii ----------
+     Near-square. A case file is a stack of paper and a filing
+     cabinet is a box; rounded corners read as consumer-app. */
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-pill: 999px;   /* status pills only */
+
+  /* ---------- Elevation ----------
+     Noir lighting is hard and directional, so shadows are tight
+     and near-opaque rather than soft ambient blurs. */
+  --shadow-sm: 0 1px 0 rgba(0,0,0,0.5);
+  --shadow-md: 0 4px 14px rgba(0,0,0,0.55);
+  --shadow-lg: 0 18px 48px rgba(0,0,0,0.65);
+  --shadow-lamp: 0 0 0 1px rgba(224,169,59,0.35), 0 0 32px rgba(224,169,59,0.14);
+
+  /* ---------- Motion ----------
+     Gameshow pacing: state changes need to land, not glide.
+     Fast and slightly overshooting, never decorative. */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-fast: 120ms;
+  --dur-base: 220ms;
+  --dur-slow: 420ms;
+  --dur-stage: 700ms;   /* projection transitions — the room needs to follow it */
+
+  /* ---------- Layout ---------- */
+  --w-content: 68rem;
+  --w-narrow:  34rem;
+  --w-wide:    92rem;
+  --h-topbar:  3.5rem;
+}
+
+/* Respect the OS setting. Everything below is either a state
+   change with a non-motion fallback or pure decoration, so
+   killing it costs no information. */
+@media (prefers-reduced-motion: reduce){
+  :root{
+    --dur-fast: 1ms; --dur-base: 1ms; --dur-slow: 1ms; --dur-stage: 1ms;
+  }
+  *, *::before, *::after{
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}

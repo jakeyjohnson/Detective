@@ -1,0 +1,10 @@
+# Nothing is built or installed — this is a static site with no
+# build step. These are just the things editors and OSes leave
+# lying around.
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+node_modules/
