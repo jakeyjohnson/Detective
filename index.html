@@ -96,11 +96,16 @@
          points at what does work. -->
     <div class="notice notice--accent is-hidden" id="local-notice" style="margin-top: var(--sp-5); text-align: left;">
       <div>
-        <strong>Local mode.</strong>
-        Player devices need the Supabase setup in <span class="mono">README.md</span>.
-        Right now the show runs from one machine, with the host keeping score.
+        <strong>Running in local mode.</strong>
+        Phones cannot sign up until Supabase is set up &mdash; see
+        <span class="mono">README.md</span>. Everything else works right now, from this
+        one machine: write a case, run the show on a projector, and keep score from the
+        control room.
       </div>
     </div>
+
+    <p class="label is-hidden" id="roles-heading"
+       style="margin: var(--sp-6) 0 var(--sp-3)">Open one of these</p>
 
     <div class="role-grid">
       <a class="role-card" href="host.html">
@@ -172,10 +177,13 @@
     UI.$('#code-confirmed').classList.remove('is-hidden');
   }
 
+  /* In local mode there is no sign-up to offer, so the form is
+     removed rather than shown broken. A disabled form is a worse
+     answer than no form: it tells people to try, then refuses. */
   if (!Store.isCloud) {
     UI.$('#local-notice').classList.remove('is-hidden');
-    joinBtn.disabled = true;
-    joinBtn.textContent = 'Sign-up is off in local mode';
+    form.classList.add('is-hidden');
+    UI.$('#roles-heading').classList.remove('is-hidden');
   }
 
   /* Force the code to the stored alphabet as it is typed. Players
