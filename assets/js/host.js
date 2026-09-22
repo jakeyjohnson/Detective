@@ -873,6 +873,11 @@
         .catch(function (err) { UI.toast(err.message, 'error'); });
     });
 
+    /* Award the question on screen is worth, so marking a room by
+       hand in local mode is one press per team rather than two or
+       three. Falls back to 5 when no question is up. */
+    var step = stepPoints();
+
     var rows = show.teams.map(function (team) {
       var adj = Number(show.adjustments[team.id] || 0);
       return UI.el('div.row.row--between', { style: 'padding: var(--sp-2) 0; border-bottom: 1px solid var(--line-secondary)' }, [
@@ -880,12 +885,16 @@
         UI.el('span.row', { style: 'flex: 0 0 auto; gap: var(--sp-1)' }, [
           adj ? UI.el('span.label.label--accent', { text: UI.signed(adj) }) : null,
           UI.el('button.btn.btn--icon', {
-            type: 'button', text: '−', title: 'Take off 5 points', 'aria-label': 'Take 5 points off ' + team.name,
-            onclick: function () { adjust(team.id, -5); }
+            type: 'button', text: '−',
+            title: 'Take off ' + step + ' points',
+            'aria-label': 'Take ' + step + ' points off ' + team.name,
+            onclick: function () { adjust(team.id, -step); }
           }),
           UI.el('button.btn.btn--icon', {
-            type: 'button', text: '+', title: 'Give 5 points', 'aria-label': 'Give 5 points to ' + team.name,
-            onclick: function () { adjust(team.id, 5); }
+            type: 'button', text: '+',
+            title: 'Give ' + step + ' points',
+            'aria-label': 'Give ' + step + ' points to ' + team.name,
+            onclick: function () { adjust(team.id, step); }
           }),
           UI.el('button.btn.btn--icon.btn--danger', {
             type: 'button', text: '×', title: 'Remove team', 'aria-label': 'Remove ' + team.name,
@@ -916,9 +925,18 @@
       UI.el('p.field__hint', {
         text: Store.isCloud
           ? 'Teams join with the code. Add one by hand if someone has no phone.'
-          : 'Add every team here, then mark them with the + and − buttons as you go.'
+          : 'Add every team here, then mark them as you go. One press is ' +
+            step + ' point' + (step === 1 ? '' : 's') +
+            (currentEntry() ? ', what this question is worth.' : '.')
       })
     ]);
+  }
+
+  /* The size of one press of + or −. */
+  function stepPoints() {
+    var entry = currentEntry();
+    var pts = entry ? Number(entry.question.points) : 0;
+    return pts > 0 ? pts : 5;
   }
 
   function adjust(teamId, delta) {

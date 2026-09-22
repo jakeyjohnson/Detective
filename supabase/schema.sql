@@ -130,10 +130,14 @@ drop policy if exists quiz_answers_host_update   on quiz_answers;
 -- Quizzes: host only, in both directions. This is the policy
 -- that keeps the questions and answers out of the browser of
 -- anyone who is not logged in.
+--
+-- "auth.uid() is not null" is the portable way to say "signed
+-- in". The older auth.role() = 'authenticated' is deprecated and
+-- is not present on newer projects, so it would fail here.
 create policy quiz_quizzes_host_all on quiz_quizzes
   for all
-  using (auth.role() = 'authenticated')
-  with check (auth.role() = 'authenticated');
+  using (auth.uid() is not null)
+  with check (auth.uid() is not null);
 
 -- Sessions: anyone may read (the projection and leaderboard are
 -- meant to be openable by anyone with the code), host writes.
@@ -141,13 +145,13 @@ create policy quiz_sessions_public_read on quiz_sessions
   for select using (true);
 
 create policy quiz_sessions_host_write on quiz_sessions
-  for insert with check (auth.role() = 'authenticated');
+  for insert with check (auth.uid() is not null);
 
 create policy quiz_sessions_host_update on quiz_sessions
-  for update using (auth.role() = 'authenticated');
+  for update using (auth.uid() is not null);
 
 create policy quiz_sessions_host_delete on quiz_sessions
-  for delete using (auth.role() = 'authenticated');
+  for delete using (auth.uid() is not null);
 
 -- Teams: anyone may read the roster (it goes on the projection)
 -- and anyone may join a session that exists and has not ended.
@@ -165,7 +169,7 @@ create policy quiz_teams_public_insert on quiz_teams
   );
 
 create policy quiz_teams_host_delete on quiz_teams
-  for delete using (auth.role() = 'authenticated');
+  for delete using (auth.uid() is not null);
 
 -- Answers: readable (the projection shows the split across the
 -- options, and each player needs their own marks back).
@@ -201,7 +205,7 @@ create policy quiz_answers_public_update on quiz_answers
   );
 
 create policy quiz_answers_host_update on quiz_answers
-  for update using (auth.role() = 'authenticated');
+  for update using (auth.uid() is not null);
 
 
 -- ---------------------------------------------------------
@@ -224,7 +228,7 @@ security definer
 set search_path = public
 as $$
 begin
-  if auth.role() is distinct from 'authenticated' then
+  if auth.uid() is null then
     new.points  := old.points;
     new.correct := old.correct;
     -- Nor may a player reassign their answer to another team,
