@@ -186,8 +186,7 @@ round2 = rnd('The Evidence', 'Everything you need is on the screen. Look properl
        'C. The chevrons match, pointing the same way and the same width apart.',
        points=15, image='treads.svg'),
 
-    text('Decipher the note. Each letter has been shifted three places forward '
-         'in the alphabet.',
+    text('What does the note say?',
          ['MEET AT MIDNIGHT', 'meet at midnight'],
          'P becomes M, H becomes E, and so on back three: MEET AT MIDNIGHT.',
          points=20, seconds=75, image='cipher.svg'),

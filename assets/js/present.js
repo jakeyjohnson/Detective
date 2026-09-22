@@ -135,6 +135,7 @@
           /* The roster is patched rather than rebuilt, so only the
              name that just arrived animates in. */
           updateRoster();
+          fitScene();
         } else if (state.phase === 'board' || state.phase === 'winner' ||
                    state.phase === 'ended') {
           renderScene();
@@ -227,11 +228,22 @@
        people signed up shows them. */
     updateVotes();
     updateRoster();
+
+    /* Twice: once now, and once after the browser has laid the
+       scene out and any pictures have arrived. */
+    fitScene();
+    fitWhenMediaLoads();
+    window.requestAnimationFrame(fitScene);
   }
 
   function panel(children, wide) {
+    /* Two layers on purpose: .scene carries the entry animation
+       (which uses transform), and .scene__fit carries the
+       shrink-to-fit transform. One element cannot do both. */
     return UI.el('div.stage__panel' + (wide ? '.stage__panel--wide' : ''), {}, [
-      UI.el('div.scene', {}, children)
+      UI.el('div.scene', {}, [
+        UI.el('div.scene__fit', {}, children)
+      ])
     ]);
   }
 
@@ -436,10 +448,10 @@
           ? UI.el('span', { text: 'Answers locked' })
           : (q.input === 'none' ? null : UI.el('span', { text: 'Answers open' }))
       ]),
-      questionHeading(q.prompt)
+      questionHeading(q.prompt, !!q.media)
     ];
 
-    if (q.media) children.push(mediaNode(q.media));
+    if (q.media) children.push(mediaNode(q.media, q.input === 'choice' && q.options));
 
     if (q.input === 'choice' && q.options) {
       children.push(optionsGrid(q.options, null));
@@ -457,7 +469,10 @@
       ));
     }
 
-    if (state.votes) {
+    /* The running tally is dropped when a picture is on screen:
+       the percentages against each option already say it, and the
+       evidence needs the height more. */
+    if (state.votes && !q.media) {
       children.push(UI.el('p.stage__votetotal', { id: 'vote-total', text: '' }));
     }
 
@@ -465,7 +480,8 @@
       children.push(UI.el('div.stage__progress', {}, [
         UI.el('div.stage__progress-bar', { id: 'progress' })
       ]));
-      children.push(UI.el('p.stage__timer', { id: 'countdown', text: UI.clock(q.timeLimit) }));
+      children.push(UI.el('p.stage__timer' + (q.media ? '.stage__timer--compact' : ''),
+        { id: 'countdown', text: UI.clock(q.timeLimit) }));
     }
 
     return panel(children, q.input === 'choice');
@@ -473,9 +489,13 @@
 
   /* Step the heading down a size or two for long questions so it
      always fits one screen without scrolling. */
-  function questionHeading(text) {
+  function questionHeading(text, crowded) {
     var t = String(text || '');
-    var cls = t.length > 180 ? '.is-very-long' : (t.length > 90 ? '.is-long' : '');
+    /* Sharing the screen with a picture leaves far less room, so
+       the same length of question steps down a size sooner. */
+    var long = crowded ? 55 : 90;
+    var veryLong = crowded ? 110 : 180;
+    var cls = t.length > veryLong ? '.is-very-long' : (t.length > long ? '.is-long' : '');
     return UI.el('h1.stage__question' + cls, { text: t });
   }
 
@@ -547,14 +567,22 @@
         UI.el('strong', { text: 'Q' + state.number }),
         UI.el('span', { text: 'The answer' })
       ]),
-      questionHeading(q.prompt)
+      questionHeading(q.prompt, false)
     ];
+
+    /* The picture stays up for the reveal. On "which of these
+       four fingerprints is a whorl", lighting up option B while
+       the evidence is off screen tells the room nothing. */
+    if (q.media) children.push(mediaNode(q.media, q.input === 'choice' && q.options));
 
     if (q.input === 'choice' && q.options) {
       children.push(optionsGrid(q.options, r.correctOptionIds || []));
-      /* The split across the options, when anyone answered. This
-         is the bit the room reacts to. */
-      if (r.distribution && r.distribution.total) {
+      /* The split across the options, when anyone answered — the
+         bit the room reacts to. Dropped when a picture is also on
+         screen: all three together will not fit, and the room has
+         been watching the same split fill up live all through the
+         question anyway. */
+      if (r.distribution && r.distribution.total && !q.media) {
         children.push(distributionNode(r.distribution));
       }
     } else {
@@ -631,6 +659,66 @@
   }
 
   /* ---------------------------------------------------------
+     Shrink to fit
+     ---------------------------------------------------------
+     A projection screen must never clip. No amount of CSS can
+     promise that, because the host writes the content: a question
+     can run to three lines, an explanation to four, and a picture
+     round puts a picture, six options and a clock on one screen.
+
+     So the scene measures itself after every render and scales
+     down uniformly if it does not fit. Scaling rather than
+     re-flowing keeps the proportions the design was drawn at, and
+     shrinking slightly is always better than losing the bottom of
+     the screen — which is where the clock lives.
+     --------------------------------------------------------- */
+  function fitScene() {
+    var fit = UI.$('.scene__fit');
+    if (!fit || !els.main) return;
+
+    fit.style.transform = '';          // measure at natural size
+
+    var main = els.main.getBoundingClientRect();
+    var rect = fit.getBoundingClientRect();
+    if (!main.height || !rect.height) return;
+
+    /* Scale down only when it genuinely does not fit. Floored,
+       because past a point the room cannot read it anyway and the
+       real answer is a shorter question. */
+    var k = rect.height > main.height
+      ? Math.max(0.55, (main.height - 8) / rect.height)
+      : 1;
+
+    /* Then centre it by measurement rather than trusting the
+       containers to have done it. The scene is the only thing on
+       the screen; it being a few pixels low is the difference
+       between the clock being visible and the clock being cut in
+       half, and that is not worth leaving to a stack of nested
+       flex and grid boxes. */
+    var centreNow = rect.top + rect.height / 2;
+    var centreWanted = main.top + main.height / 2;
+    var dy = centreWanted - centreNow;
+
+    if (k === 1 && Math.abs(dy) < 1) return;
+    fit.style.transform = 'translateY(' + dy.toFixed(1) + 'px) scale(' + k.toFixed(4) + ')';
+  }
+
+  /* Pictures have no height until they load, so the first measure
+     is taken before they arrive. Re-fit as each one lands. */
+  function fitWhenMediaLoads() {
+    UI.$$('.scene__fit img, .scene__fit video').forEach(function (node) {
+      if (node.complete) return;
+      node.addEventListener('load', fitScene, { once: true });
+      node.addEventListener('loadedmetadata', fitScene, { once: true });
+      node.addEventListener('error', fitScene, { once: true });
+    });
+  }
+
+  window.addEventListener('resize', function () {
+    window.setTimeout(fitScene, 60);
+  });
+
+  /* ---------------------------------------------------------
      Media
      ---------------------------------------------------------
      The projector is the machine with the speakers, so this is
@@ -638,9 +726,18 @@
      locally; the host's mediaState only says whether it should
      be running.
      --------------------------------------------------------- */
-  function mediaNode(media) {
+  function mediaNode(media, sharesWithOptions) {
+    /* At the reveal the clip has already been heard or watched,
+       so a still frame is shown rather than playing it again over
+       the host talking. */
+    var replay = state && state.phase === 'reveal';
+    /* A picture that shares the screen with four answers gets a
+       smaller share of it, so the answers are never squeezed off
+       the bottom. */
+    var cls = '.stage__media' + (sharesWithOptions ? '.stage__media--with-options' : '');
+
     if (media.kind === 'image') {
-      return UI.el('div.stage__media', {}, [
+      return UI.el('div' + cls, {}, [
         UI.el('img', { src: media.url, alt: '' })
       ]);
     }
@@ -650,19 +747,20 @@
          meter stand-in and the element itself stays hidden. */
       var audio = UI.el('audio', { src: media.url, preload: 'auto' });
       mediaEl = audio;
+      if (replay) media = Object.assign({}, media, { autoplay: false });
       var meter = UI.el('div.stage__audio', {},
         [1, 2, 3, 4, 5, 6, 7].map(function () { return UI.el('div.stage__audio-bar'); })
       );
       wireMedia(audio, media, meter);
-      return UI.el('div.stage__media', {}, [meter, audio]);
+      return UI.el('div' + cls, {}, [meter, audio]);
     }
 
     var video = UI.el('video', {
       src: media.url, preload: 'auto', playsinline: 'playsinline'
     });
     mediaEl = video;
-    wireMedia(video, media, null);
-    return UI.el('div.stage__media', {}, [video]);
+    wireMedia(video, Object.assign({}, media, replay ? { autoplay: false } : {}), null);
+    return UI.el('div' + cls, {}, [video]);
   }
 
   function wireMedia(el, media, meter) {
@@ -750,7 +848,11 @@
 
     var secs = Math.ceil(remaining / 1000);
     el.textContent = UI.clock(secs);
-    el.className = 'stage__timer' + (secs <= 5 ? ' stage__timer--urgent' : (secs <= 10 ? ' stage__timer--warn' : ''));
+    /* Keep whatever size the scene chose; only the colour changes
+       as the clock runs down. */
+    var compact = el.classList.contains('stage__timer--compact') ? ' stage__timer--compact' : '';
+    el.className = 'stage__timer' + compact +
+      (secs <= 5 ? ' stage__timer--urgent' : (secs <= 10 ? ' stage__timer--warn' : ''));
 
     var bar = UI.$('#progress');
     if (bar && state.timer && state.timer.duration) {

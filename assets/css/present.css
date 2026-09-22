@@ -35,7 +35,7 @@ body.stage{
 
 .stage__top, .stage__bottom{
   display: flex; align-items: center; gap: var(--sp-5);
-  padding: var(--sp-5) var(--sp-7);
+  padding: clamp(var(--sp-2), 1.8vh, var(--sp-5)) clamp(var(--sp-4), 3vw, var(--sp-7));
   font-family: var(--font-mono);
   font-size: var(--fs-proj-label);
   letter-spacing: var(--ls-widest);
@@ -49,7 +49,7 @@ body.stage{
 .stage__main{
   display: grid;
   place-items: center;
-  padding: 0 var(--sp-8);
+  padding: 0 clamp(var(--sp-4), 4vw, var(--sp-8));
   min-height: 0;   /* lets the grid row actually constrain the child */
   text-align: center;
 }
@@ -69,17 +69,35 @@ body.stage{
 /* Every scene fades and lifts in. One shared animation so
    scene changes have a single consistent rhythm — the room
    learns "something moved, look up". */
+/* .scene is the animation layer only. */
 .scene{
   animation: scene-in var(--dur-stage) var(--ease-out);
   width: 100%;
   min-height: 0;
+  max-height: 100%;
+  display: flex;
+  align-items: center; justify-content: center;
+}
+
+/* .scene__fit is the layout, and the layer that gets scaled down
+   when the content is taller than the screen. */
+.scene__fit{
+  width: 100%;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  gap: var(--sp-5);
+  gap: clamp(var(--sp-3), 2vh, var(--sp-5));
+  transform-origin: center center;
 }
+/* Opacity only, no transform.
+   The scene used to lift as it faded in, which looked good and
+   made the layout impossible to measure: anything reading the
+   scene's position mid-animation sees it sitting low, and the
+   fitter below has to measure to do its job. A cross-fade at
+   projection scale is quite enough to tell a room something
+   changed. */
 @keyframes scene-in{
-  from{ opacity: 0; transform: translateY(1.5rem); }
-  to{ opacity: 1; transform: none; }
+  from{ opacity: 0; }
+  to{ opacity: 1; }
 }
 
 /* ---------------------------------------------------------
@@ -101,6 +119,7 @@ body.stage{
 .stage__qmeta strong{ color: var(--accent); font-weight: var(--fw-bold); }
 
 .stage__question{
+  flex: 0 0 auto;
   font-family: var(--font-display);
   font-size: var(--fs-proj-question);
   font-weight: var(--fw-bold);
@@ -122,16 +141,17 @@ body.stage{
    room how many choices there are. */
 .stage__options{
   display: grid;
-  gap: var(--sp-4);
+  gap: clamp(var(--sp-2), 1.4vh, var(--sp-4));
   width: 100%;
+  flex: 0 0 auto;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 .stage__options[data-count="2"],
 .stage__options[data-count="3"]{ grid-template-columns: minmax(0, 1fr); }
 
 .stage__option{
-  display: flex; align-items: center; gap: var(--sp-4);
-  padding: var(--sp-4) var(--sp-5);
+  display: flex; align-items: center; gap: clamp(var(--sp-2), 1.6vh, var(--sp-4));
+  padding: clamp(var(--sp-2), 1.5vh, var(--sp-4)) clamp(var(--sp-3), 1.6vw, var(--sp-5));
   font-size: var(--fs-proj-option);
   text-align: left;
   background: var(--bg-panel);
@@ -224,6 +244,7 @@ body.stage{
    Countdown
    --------------------------------------------------------- */
 .stage__timer{
+  flex: 0 0 auto;
   font-family: var(--font-mono);
   font-size: var(--fs-proj-huge);
   font-weight: var(--fw-bold);
@@ -232,6 +253,11 @@ body.stage{
   color: var(--text-primary);
 }
 .stage__timer--warn{ color: var(--accent); }
+/* Beside a picture there is no room for the full-height clock. */
+.stage__timer--compact{
+  font-size: clamp(1.25rem, 3.4vw, 3.25rem);
+}
+
 .stage__timer--urgent{
   color: var(--state-wrong);
   /* Single beat per second, matched to the tick. Anything more
@@ -246,6 +272,7 @@ body.stage{
 /* Thin progress rule under the question — peripheral time
    pressure the room feels without having to read a number. */
 .stage__progress{
+  flex: 0 0 auto;
   width: 100%; height: 4px;
   background: var(--line-secondary);
   border-radius: var(--radius-pill);
@@ -372,18 +399,58 @@ body.stage{
 /* ---------------------------------------------------------
    Media scene
    --------------------------------------------------------- */
+/* Media has to fit in whatever is LEFT after the question text,
+   the options and the clock — not push them off the screen or
+   get drawn underneath them.
+
+   `flex: 1 1 auto` with `min-height: 0` is what allows a flex
+   item to shrink below its content size; without the explicit
+   min-height it refuses, the panel overflows, and everything
+   after it ends up on top of the picture. The vh caps then stop
+   a tall image from squeezing the options down to nothing. */
+/* The cap goes on the PICTURE, in viewport units, and the box
+   shrinks to fit it.
+
+   Sizing the box and then asking the picture to fill it needs a
+   percentage height, and a percentage only resolves against a
+   parent with a definite height — which a flex item sized by
+   min/max-height is not. The percentage quietly fell back to the
+   image's own aspect ratio, overflowed, and got clipped, which
+   looks like a badly cropped photograph rather than a CSS bug.
+   A viewport unit on the image itself has nothing to resolve
+   against, so it simply works. */
+/* flex: 0 0 auto — the box must NOT shrink.
+   With shrinking allowed, flex squashed the box while the picture
+   inside kept its own height, so the picture spilled out over the
+   question text above it. The box now always matches its picture,
+   which also means an over-tall scene shows up as real overflow
+   instead of hiding as an overlap. */
 .stage__media{
+  flex: 0 0 auto;
   width: 100%;
-  min-height: 0;
-  display: grid; place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.stage__media--with-options .stage__media-inner,
+.stage__media--with-options video,
+.stage__media--with-options img{ max-height: 22vh; }
+
+/* width AND height at 100%, not auto.
+   An SVG carrying only a viewBox has no intrinsic size, so
+   `height: auto` collapses it to a default box and the picture
+   ends up cropped to a strip. Filling the box and letting
+   object-fit letterbox inside it is the only sizing that works
+   for SVG, raster images and video alike. */
 .stage__media video,
 .stage__media img{
+  display: block;
+  width: auto;
+  height: auto;
   max-width: 100%;
-  max-height: 100%;
-  width: auto; height: auto;
+  max-height: 38vh;       /* the picture is the whole question */
   border-radius: var(--radius-md);
-  border: 1px solid var(--line-primary);
 }
 /* Audio has nothing to look at, so the stage shows a level-meter
    stand-in: 7 bars on staggered delays. It tells the room the
@@ -422,7 +489,7 @@ body.stage{
    --------------------------------------------------------- */
 .stage__answer{
   font-family: var(--font-display);
-  font-size: clamp(2rem, 5.5vw, 7rem);
+  font-size: clamp(1.4rem, min(5.5vw, 9vh), 7rem);
   font-weight: var(--fw-bold);
   text-transform: uppercase;
   letter-spacing: var(--ls-tight);
@@ -434,6 +501,7 @@ body.stage{
   font-family: var(--font-body);
   font-size: var(--fs-proj-meta);
   line-height: var(--lh-snug);
+  flex: 0 0 auto;
   color: var(--text-secondary);
   max-width: 50ch;
   text-transform: none;
@@ -443,7 +511,11 @@ body.stage{
 /* Answer distribution — how many teams picked each option.
    Shown at reveal because "38 of you fell for B" is the moment
    the room reacts to. */
-.stage__dist{ display: flex; flex-direction: column; gap: var(--sp-3); width: 100%; }
+.stage__dist{
+  display: flex; flex-direction: column;
+  gap: clamp(2px, 1vh, var(--sp-3));
+  width: 100%; flex: 0 0 auto;
+}
 .stage__dist-row{
   display: grid;
   grid-template-columns: 2.5em minmax(0, 1fr) 4em;
@@ -453,7 +525,7 @@ body.stage{
   font-size: var(--fs-proj-meta);
 }
 .stage__dist-bar{
-  height: clamp(1rem, 2.2vh, 2rem);
+  height: clamp(0.6rem, 2.2vh, 2rem);
   background: var(--bg-raised);
   border-radius: var(--radius-sm);
   overflow: hidden;
@@ -585,7 +657,7 @@ body.stage{
 
 .stage__winner-name{
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 8vw, 10rem);
+  font-size: clamp(2rem, min(8vw, 14vh), 10rem);
   font-weight: var(--fw-bold);
   text-transform: uppercase;
   letter-spacing: var(--ls-tight);

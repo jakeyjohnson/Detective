@@ -773,7 +773,7 @@
         {
           "id": "pack_q016",
           "type": "image",
-          "prompt": "Decipher the note. Each letter has been shifted three places forward in the alphabet.",
+          "prompt": "What does the note say?",
           "points": 20,
           "timeLimit": 75,
           "explanation": "P becomes M, H becomes E, and so on back three: MEET AT MIDNIGHT.",
