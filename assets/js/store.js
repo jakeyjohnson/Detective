@@ -511,15 +511,22 @@
             function () { return self.read(code); });
         },
 
-        /* Written to a table with no SELECT policy at all, so it
-           cannot be read back out — not even by the host. To
-           change it, set a new one. */
+        /* Written through a database function, not a table write.
+           The keys table has no policies at all, so nothing can
+           read a venue password back — and an upsert against an
+           unreadable table cannot work anyway, because ON CONFLICT
+           DO UPDATE has to read the row it conflicts with. */
         setVenuePassword: function (code, password) {
-          return db.from('quiz_session_keys').upsert({
-            session_code: code,
-            venue_password: String(password == null ? '' : password).trim()
-          }, { onConflict: 'session_code' }).then(function (res) {
-            if (res.error) throw res.error;
+          return db.rpc('quiz_set_venue_password', {
+            p_code: String(code || '').trim().toUpperCase(),
+            p_password: String(password == null ? '' : password)
+          }).then(function (res) {
+            if (res.error) {
+              if (String(res.error.message || '').indexOf('NOT_SIGNED_IN') !== -1) {
+                throw new Error('Sign in before setting a venue password.');
+              }
+              throw res.error;
+            }
           });
         },
 

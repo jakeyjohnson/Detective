@@ -143,6 +143,9 @@ drop policy if exists quiz_sessions_host_write   on quiz_sessions;
 drop policy if exists quiz_sessions_host_update  on quiz_sessions;
 drop policy if exists quiz_sessions_host_delete  on quiz_sessions;
 drop policy if exists quiz_keys_host_all         on quiz_session_keys;
+drop policy if exists quiz_keys_host_insert      on quiz_session_keys;
+drop policy if exists quiz_keys_host_update      on quiz_session_keys;
+drop policy if exists quiz_keys_host_delete      on quiz_session_keys;
 drop policy if exists quiz_teams_public_read     on quiz_teams;
 drop policy if exists quiz_teams_public_insert   on quiz_teams;
 drop policy if exists quiz_teams_host_insert     on quiz_teams;
@@ -178,13 +181,27 @@ create policy quiz_sessions_host_update on quiz_sessions
 create policy quiz_sessions_host_delete on quiz_sessions
   for delete using (auth.uid() is not null);
 
--- Venue passwords: the host writes them, nobody reads them. There
--- is deliberately no SELECT policy at all, so even a signed-in
--- host cannot read one back — they set a new one instead.
-create policy quiz_keys_host_all on quiz_session_keys
-  for all
-  using (auth.uid() is not null)
-  with check (auth.uid() is not null);
+-- Venue passwords: NO POLICIES AT ALL.
+--
+-- Row level security is on and nothing grants access, so the
+-- table is unreachable by every client — player, control room and
+-- signed-in host alike. Nobody can read a venue password back
+-- out; to change one you set a new one.
+--
+-- It is reached only through the two SECURITY DEFINER functions
+-- below, which run as their owner and so sit outside these
+-- policies: quiz_set_venue_password() writes one and
+-- quiz_join_team() checks one. Rows go away with their session,
+-- by the cascade on the foreign key.
+--
+-- One FOR ALL policy would have been shorter and wrong: FOR ALL
+-- covers SELECT, which would have let any signed-in account read
+-- every venue password.
+--
+-- This is also why writes go through a function rather than an
+-- upsert. PostgREST compiles upsert to INSERT ... ON CONFLICT DO
+-- UPDATE, which has to read the conflicting row — so an upsert
+-- cannot work against a table that nothing may read.
 
 -- Teams: anyone may read the roster (it goes on the projection).
 create policy quiz_teams_public_read on quiz_teams
@@ -234,6 +251,38 @@ create policy quiz_answers_public_update on quiz_answers
 
 create policy quiz_answers_host_update on quiz_answers
   for update using (auth.uid() is not null);
+
+
+-- ---------------------------------------------------------
+-- 5a. Setting tonight's venue password.
+--
+--     A SECURITY DEFINER function runs as its owner and so
+--     bypasses row level security entirely. That means it has to
+--     do its own authorisation — the check below is the only
+--     thing standing between an anonymous caller and every venue
+--     password, so it is not optional, and EXECUTE is granted to
+--     signed-in accounts only.
+-- ---------------------------------------------------------
+create or replace function quiz_set_venue_password(p_code text, p_password text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if auth.uid() is null then
+    raise exception 'NOT_SIGNED_IN';
+  end if;
+
+  insert into quiz_session_keys (session_code, venue_password)
+  values (upper(btrim(p_code)), btrim(coalesce(p_password, '')))
+  on conflict (session_code)
+    do update set venue_password = excluded.venue_password;
+end;
+$$;
+
+revoke all on function quiz_set_venue_password(text, text) from public;
+grant execute on function quiz_set_venue_password(text, text) to authenticated;
 
 
 -- ---------------------------------------------------------

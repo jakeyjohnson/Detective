@@ -103,14 +103,25 @@ not focus in a dark venue must not be the end of somebody's night.
 The point of a venue password is that only people in your room can play. That only
 holds if the password cannot be looked up, so:
 
-- It is stored in `quiz_session_keys`, a table with **no read policy at all** — not
-  even for a signed-in host. Set a new one rather than reading the old one back.
-- Joining goes through a `security definer` database function, `quiz_join_team()`,
-  which checks the password server-side. Players have no insert permission on the
-  teams table, so there is no way round the check.
+- It is stored in `quiz_session_keys`, a table with **no policies at all**. Row
+  level security is on and nothing grants access, so the table is unreachable by
+  every client — player, control room, and signed-in host alike. Nobody reads a
+  venue password back out; you set a new one.
+- It is reached only by two `security definer` functions, which run as their owner
+  and so sit outside those policies: `quiz_set_venue_password()` writes one, and
+  `quiz_join_team()` checks one while joining. Players have no insert permission on
+  the teams table, so there is no way round the check.
 - It is **never** in the state the screens read. It reaches the projection through
   the link the control room gives you (`present.html?code=…&vp=…`). Someone who
   opens the projection with just the code sees no password.
+
+Two things in that list are there because running the schema against a real
+PostgreSQL disproved the earlier version. The table first used a single `FOR ALL`
+policy for the host — and `FOR ALL` covers `SELECT`, so any signed-in account could
+read every venue password, while this README claimed none could. Closing that then
+broke writing, because PostgREST compiles an upsert to `INSERT ... ON CONFLICT DO
+UPDATE`, which has to read the row it conflicts with; a table nothing may read
+cannot be upserted into. Hence the setter function.
 
 It could not have gone on the session row: that row is world-readable, which is how
 the projection and the leaderboard work at all, so a password there would be visible
@@ -383,10 +394,11 @@ again. Worth doing during setup rather than discovering it on question one.
 node test/engine.test.js    # 53 checks — scoring, redaction, phases
 node test/qr.test.js        # 28 checks — the QR encoder, by decoding it back
 node test/pack.test.js      # 14 checks — the starter pack's content
+bash tools/test-schema.sh   # 42 checks — the database, against a real PostgreSQL
 ```
 
-95 checks over the parts that quietly ruin a live show if they are wrong, all in
-plain node with no browser and no network:
+137 checks over the parts that quietly ruin a live show if they are wrong. The first
+three run in plain node with no browser and no network:
 
 - **engine** — scoring for every input mode, the redaction guarantees, tie handling,
   phase navigation, validation, clock-skew correction, the live vote payload and the
@@ -396,6 +408,21 @@ plain node with no browser and no network:
   information, capacities and data-module counts cross-checked against the published
   values in ISO/IEC 18004 rather than against the encoder itself.
 - **pack** — the content checks above.
+
+The fourth needs PostgreSQL installed locally, and is the one worth explaining. The
+security claims in this project are claims about the *database*: that a player
+cannot read the questions, cannot award themselves points, and cannot get in without
+the venue password. `tools/test-schema.sh` starts a throwaway PostgreSQL, supplies
+only what Supabase supplies for you — the `anon` and `authenticated` roles,
+`auth.uid()`, and the default table grants — runs `supabase/schema.sql` exactly as
+shipped, and then tries all of it as a player and as a host. It rolls everything
+back and throws the cluster away.
+
+It found two real problems the first time it ran, both described under "Where the
+password lives" above, and corrected one of my own assumptions: row level security
+on `UPDATE` **filters** rather than raising, so a player's attempt to rewrite the
+session state succeeds having changed nothing. Tests that expected an error were
+passing for the wrong reason.
 
 The browser tests that drive whole shows end to end are not in the repository,
 because they need Playwright and a stand-in for Supabase. They were used to verify
@@ -446,6 +473,8 @@ assets/img/pack/        The picture round's evidence, as SVG
 
 tools/make-pack.py      Rebuilds the starter pack
 tools/make-pack-images.py  Redraws its pictures
+tools/test-schema.sh    Runs schema.sql against a real PostgreSQL
+tools/schema-test/      Its setup and assertions
 
 supabase/schema.sql     Run once. Tables, security policies, the
                           join function that enforces the venue
