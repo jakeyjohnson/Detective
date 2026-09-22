@@ -578,9 +578,13 @@ img, video{ max-width: 100%; display: block; }
 }
 .opt .input{ flex: 1 1 auto; }
 
+/* Eleven question types have to stay scannable inside a 20rem
+   sidebar. A 7rem floor packs two per row there and more when
+   the sidebar goes full-width on a narrow screen, which keeps
+   the panel short enough that the sticky sidebar still works. */
 .type-picker{
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
   gap: var(--sp-2);
 }
 .type-btn{
@@ -601,7 +605,18 @@ img, video{ max-width: 100%; display: block; }
   text-transform: uppercase;
   color: var(--text-primary);
 }
-.type-btn span{ font-size: var(--fs-100); color: var(--text-faint); line-height: var(--lh-snug); }
+/* The blurb earns its place but must not make one card three
+   times the height of its neighbours, so it is clamped. The full
+   text stays available as the button's title attribute. */
+.type-btn span{
+  font-size: var(--fs-100);
+  color: var(--text-faint);
+  line-height: var(--lh-snug);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
 /* ---------------------------------------------------------
    12. Host control room

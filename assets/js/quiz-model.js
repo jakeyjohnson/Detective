@@ -190,6 +190,7 @@
       explanation: '',
       media: { kind: t.mediaKind || 'none', url: '', startAt: null, endAt: null, autoplay: true, loop: false },
       options: [],
+      multiCorrect: false,   // choice questions: several options can be right
       answers: [],
       acceptClose: true,     // fuzzy text matching — forgives a typo
       items: [],

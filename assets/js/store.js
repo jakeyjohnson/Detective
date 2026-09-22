@@ -287,6 +287,17 @@
     }
   });
 
+  /* Local mode has no accounts. The host gate falls back to the
+     passphrase in config.js, which gate.js handles. */
+  localDriver.auth = {
+    supported: false,
+    user: function () { return Promise.resolve(null); },
+    signIn: function () {
+      return Promise.reject(new Error('Log in needs the Supabase setup in README.md.'));
+    },
+    signOut: function () { return Promise.resolve(); }
+  };
+
   /* ---------------------------------------------------------
      Driver: cloud (Supabase)
      --------------------------------------------------------- */
@@ -340,6 +351,37 @@
 
     return {
       name: 'cloud',
+
+      auth: {
+        supported: true,
+
+        /* Resolves to the signed-in user or null. Supabase
+           restores a session from storage asynchronously, so this
+           is the only safe way to ask "am I logged in" on load. */
+        user: function () {
+          return db.auth.getSession().then(function (res) {
+            return (res && res.data && res.data.session && res.data.session.user) || null;
+          }).catch(function () { return null; });
+        },
+
+        signIn: function (email, password) {
+          return db.auth.signInWithPassword({ email: email, password: password })
+            .then(function (res) {
+              if (res.error) {
+                /* Supabase says "Invalid login credentials" for a
+                   wrong password AND for an address with no
+                   account. Passing that through is honest and
+                   gives nothing away. */
+                throw new Error(res.error.message || 'Could not sign in.');
+              }
+              return res.data.user;
+            });
+        },
+
+        signOut: function () {
+          return db.auth.signOut().then(function () { return null; });
+        }
+      },
 
       quizzes: {
         list: function () {
@@ -556,6 +598,7 @@
     isCloud: driver.name === 'cloud',
     quizzes: driver.quizzes,
     session: driver.session,
+    auth: driver.auth,
 
     /* Exported for the builder's import/export and for tests. */
     _localDriver: localDriver

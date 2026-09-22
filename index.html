@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>So You Want To Be A Detective</title>
+<meta name="description" content="Join the game, or open the control room to run it.">
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23080A0E'/%3E%3Ccircle cx='14' cy='13' r='7' fill='none' stroke='%23E0A93B' stroke-width='3'/%3E%3Cpath d='M19 18 L26 26' stroke='%23E0A93B' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Inter:wght@400;500;700&family=Courier+Prime:wght@400;700&display=swap">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="index.html">
+    <span class="brand__mark" aria-hidden="true"></span>
+    <span>Detective</span>
+  </a>
+  <span class="spacer"></span>
+  <nav class="topbar__nav">
+    <a class="btn btn--ghost btn--sm" href="leaderboard.html">Leaderboard</a>
+    <a class="btn btn--ghost btn--sm" href="host.html">Host</a>
+  </nav>
+</header>
+
+<main class="hero">
+  <div class="hero__inner">
+
+    <p class="label label--accent" id="tagline">Five rounds. One verdict.</p>
+    <h1 class="hero__title">So You Want To Be A <em>Detective</em></h1>
+    <p class="hero__sub">Enter the code on the screen to join the game.</p>
+
+    <!-- Join form. Autofocused and submittable with Enter, because
+         in practice a room of people are typing this at once in a
+         hurry while the host waits. -->
+    <form class="stack" id="join-form" novalidate>
+      <div class="field">
+        <label class="label" for="code">Game code</label>
+        <input class="input input--code" id="code" name="code" type="text"
+               inputmode="latin" autocomplete="off" autocapitalize="characters"
+               spellcheck="false" maxlength="5" placeholder="ABCDE"
+               aria-describedby="code-hint">
+        <p class="field__hint" id="code-hint">Five characters, shown on the big screen.</p>
+      </div>
+      <div class="field">
+        <label class="label" for="team">Your team name</label>
+        <input class="input" id="team" name="team" type="text"
+               autocomplete="off" maxlength="40" placeholder="The Baker Street Irregulars">
+      </div>
+      <p class="field__error is-hidden" id="join-error" role="alert"></p>
+      <button class="btn btn--primary btn--lg btn--block" type="submit" id="join-btn">Join the game</button>
+    </form>
+
+    <!-- Local mode can't accept player devices, so rather than
+         leaving a form that will always fail, the page says so and
+         points at what does work. -->
+    <div class="notice notice--accent is-hidden" id="local-notice" style="margin-top: var(--sp-5); text-align: left;">
+      <div>
+        <strong>Local mode.</strong>
+        Player devices need the Supabase setup in <span class="mono">README.md</span>.
+        Right now the show runs from one machine, with the host keeping score.
+      </div>
+    </div>
+
+    <div class="role-grid">
+      <a class="role-card" href="host.html">
+        <h3>Control room</h3>
+        <p>Run the show. Private, host only.</p>
+      </a>
+      <a class="role-card" href="build.html">
+        <h3>Write a case</h3>
+        <p>Build and edit your quizzes.</p>
+      </a>
+      <a class="role-card" href="leaderboard.html">
+        <h3>Leaderboard</h3>
+        <p>Standings, live, for anyone.</p>
+      </a>
+      <a class="role-card" href="present.html">
+        <h3>Projection</h3>
+        <p>The full-screen game board.</p>
+      </a>
+    </div>
+
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/quiz-model.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/ui.js"></script>
+<script>
+(function () {
+  'use strict';
+  var UI = window.DetectiveUI;
+  var Store = window.DetectiveStore;
+  var cfg = window.DETECTIVE_CONFIG || {};
+
+  var form = UI.$('#join-form');
+  var codeInput = UI.$('#code');
+  var teamInput = UI.$('#team');
+  var errorEl = UI.$('#join-error');
+  var joinBtn = UI.$('#join-btn');
+
+  if (cfg.showTagline) UI.$('#tagline').textContent = cfg.showTagline;
+
+  /* A code can arrive in the URL from a QR code on the table, in
+     which case the player only has to name their team. */
+  var prefill = UI.param('code', '');
+  if (prefill) codeInput.value = prefill.toUpperCase().slice(0, 5);
+
+  if (!Store.isCloud) {
+    UI.$('#local-notice').classList.remove('is-hidden');
+    joinBtn.disabled = true;
+    joinBtn.textContent = 'Joining is off in local mode';
+  }
+
+  /* Force the code to the stored alphabet as it is typed. Players
+     mistype an O for a zero constantly; codes never contain
+     either, so silently correcting is better than rejecting. */
+  codeInput.addEventListener('input', function () {
+    var v = codeInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+    v = v.replace(/0/g, 'O').replace(/1/g, 'I').replace(/[IO]/g, '');
+    codeInput.value = v.slice(0, 5);
+  });
+
+  if (!prefill) codeInput.focus(); else teamInput.focus();
+
+  function fail(message) {
+    errorEl.textContent = message;
+    errorEl.classList.remove('is-hidden');
+  }
+
+  form.addEventListener('submit', function (ev) {
+    ev.preventDefault();
+    errorEl.classList.add('is-hidden');
+
+    var code = codeInput.value.trim().toUpperCase();
+    var team = teamInput.value.trim();
+
+    if (code.length < 5) return fail('That code looks short. Check the screen.');
+    if (!team) return fail('Give your team a name.');
+
+    joinBtn.disabled = true;
+    joinBtn.textContent = 'Joining…';
+
+    /* Check the game exists before creating a team row, so a
+       mistyped code says "no game with that code" rather than
+       silently parking the player in a lobby that never starts. */
+    Store.session.read(code)
+      .then(function (session) {
+        if (!session) throw new Error('No game with that code. Check the screen and try again.');
+        var state = session.state || {};
+        if (state.phase === 'ended') throw new Error('That game has finished.');
+        return Store.session.joinTeam(code, team);
+      })
+      .then(function (t) {
+        UI.identity.set(code, t);
+        window.location.href = 'play.html?code=' + encodeURIComponent(code);
+      })
+      .catch(function (err) {
+        fail(err && err.message ? err.message : 'Could not join. Try again.');
+        joinBtn.disabled = false;
+        joinBtn.textContent = 'Join the game';
+      });
+  });
+})();
+</script>
+</body>
+</html>

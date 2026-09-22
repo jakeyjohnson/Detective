@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Write a case — Detective</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23080A0E'/%3E%3Ccircle cx='14' cy='13' r='7' fill='none' stroke='%23E0A93B' stroke-width='3'/%3E%3Cpath d='M19 18 L26 26' stroke='%23E0A93B' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Inter:wght@400;500;700&family=Courier+Prime:wght@400;700&display=swap">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<div id="builder-app" class="is-hidden">
+
+<header class="topbar">
+  <a class="brand" href="index.html">
+    <span class="brand__mark" aria-hidden="true"></span>
+    <span>Detective</span>
+  </a>
+  <span class="label" id="save-status">Saved</span>
+  <span class="spacer"></span>
+  <nav class="topbar__nav">
+    <button class="btn btn--sm" type="button" id="new-quiz">New case</button>
+    <button class="btn btn--sm" type="button" id="export">Export</button>
+    <label class="btn btn--sm" for="import-file">Import</label>
+    <input class="visually-hidden" type="file" id="import-file" accept=".json,application/json">
+    <button class="btn btn--primary btn--sm" type="button" id="run-show">Run this show →</button>
+  </nav>
+</header>
+
+<main class="page page--wide">
+
+  <div class="page__head">
+    <span class="label">Case file</span>
+    <input class="input" id="quiz-title" type="text" placeholder="Name this case"
+           aria-label="Case title"
+           style="font-family: var(--font-display); font-size: var(--fs-700); text-transform: uppercase; letter-spacing: var(--ls-tight); background: transparent; border-color: transparent; padding-left: 0;">
+    <input class="input" id="quiz-subtitle" type="text" placeholder="A line for the title screen (optional)"
+           aria-label="Case subtitle"
+           style="background: transparent; border-color: transparent; padding-left: 0; color: var(--text-secondary);">
+  </div>
+
+  <div class="builder">
+
+    <div>
+      <div id="rounds"></div>
+      <button class="btn btn--block" type="button" id="add-round">+ Add a round</button>
+    </div>
+
+    <aside class="builder__side stack">
+
+      <div class="panel stack" id="picker-panel">
+        <div>
+          <span class="label label--bright">Add a question to</span>
+          <p class="mono" id="picker-target" style="color: var(--text-accent); margin: var(--sp-1) 0 0; font-size: var(--fs-200);">Round 1</p>
+        </div>
+        <div class="type-picker" id="type-picker"></div>
+      </div>
+
+      <div class="panel stack">
+        <span class="label label--bright">How the show runs</span>
+        <label class="check">
+          <input type="checkbox" data-setting="showBoardAfterRound">
+          <span class="check__text">Leaderboard at the end of each round</span>
+        </label>
+        <label class="check">
+          <input type="checkbox" data-setting="showBoardAfterEach">
+          <span class="check__text">Leaderboard after every question</span>
+        </label>
+        <label class="check">
+          <input type="checkbox" data-setting="shuffleOptions">
+          <span class="check__text">Shuffle the options for each question</span>
+        </label>
+        <label class="check">
+          <input type="checkbox" data-setting="speedBonus">
+          <span class="check__text">Bonus points for answering fast</span>
+        </label>
+        <p class="field__hint">
+          The speed bonus adds up to half a question's points again, scaled by how
+          much time was left. It rewards quick fingers as much as knowing the answer,
+          so it suits a fast round and ruins a thoughtful one.
+        </p>
+      </div>
+
+      <div id="sidebar" class="stack"></div>
+
+      <div class="panel stack">
+        <span class="label label--bright">Saved cases</span>
+        <div class="stack stack--tight" id="quiz-list"></div>
+      </div>
+
+    </aside>
+  </div>
+</main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/quiz-model.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/gate.js"></script>
+<script src="assets/js/builder.js"></script>
+</body>
+</html>

@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Control room — Detective</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23080A0E'/%3E%3Ccircle cx='14' cy='13' r='7' fill='none' stroke='%23E0A93B' stroke-width='3'/%3E%3Cpath d='M19 18 L26 26' stroke='%23E0A93B' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Inter:wght@400;500;700&family=Courier+Prime:wght@400;700&display=swap">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<div id="host-app" class="is-hidden">
+
+  <header class="topbar">
+    <a class="brand" href="index.html">
+      <span class="brand__mark" aria-hidden="true"></span>
+      <span>Control room</span>
+    </a>
+    <span class="spacer"></span>
+    <div class="row row--wrap" id="show-status"></div>
+  </header>
+
+  <!-- Setup: choose what to run -->
+  <main class="page" id="setup">
+    <div class="page__head">
+      <span class="label">Step one</span>
+      <h1>Pick a case to run</h1>
+      <p>
+        Starting a show generates a join code and opens the control room. You will get
+        links for the projection screen and the leaderboard to open on other screens.
+      </p>
+    </div>
+    <div class="stack" id="quiz-picker"></div>
+  </main>
+
+  <!-- Live: running the show -->
+  <main class="page page--wide is-hidden" id="live">
+    <div class="host">
+
+      <div class="stack">
+        <div class="now" id="now"></div>
+        <div class="transport" id="transport"></div>
+
+        <div class="panel stack">
+          <span class="label label--bright">Keyboard</span>
+          <p class="field__hint" style="margin:0">
+            <span class="mono">Space</span> or <span class="mono">→</span> next ·
+            <span class="mono">←</span> back ·
+            <span class="mono">R</span> reveal ·
+            <span class="mono">B</span> leaderboard ·
+            <span class="mono">L</span> lock or open answers ·
+            <span class="mono">T</span> pause or start the clock.
+            Shortcuts are ignored while you are typing in a box.
+          </p>
+        </div>
+      </div>
+
+      <div class="stack">
+        <div class="panel stack" id="links"></div>
+        <div id="side" class="stack"></div>
+      </div>
+
+    </div>
+  </main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/quiz-model.js"></script>
+<script src="assets/js/show.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/gate.js"></script>
+<script src="assets/js/host.js"></script>
+</body>
+</html>

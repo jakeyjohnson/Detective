@@ -415,6 +415,19 @@ body.stage{
 /* ---------------------------------------------------------
    Winner scene
    --------------------------------------------------------- */
+/* The winner's score. Brass, not the reveal green — in this
+   system green means "that answer was correct", and using it for
+   a score would blur the one colour that carries meaning. */
+.stage__winner-score{
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 4vw, 5rem);
+  font-weight: var(--fw-bold);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-tight);
+  line-height: var(--lh-tight);
+  color: var(--text-primary);
+}
+
 .stage__winner-name{
   font-family: var(--font-display);
   font-size: clamp(2.5rem, 9vw, 12rem);

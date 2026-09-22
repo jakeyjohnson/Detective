@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Playing — Detective</title>
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#080A0E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23080A0E'/%3E%3Ccircle cx='14' cy='13' r='7' fill='none' stroke='%23E0A93B' stroke-width='3'/%3E%3Cpath d='M19 18 L26 26' stroke='%23E0A93B' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Inter:wght@400;500;700&family=Courier+Prime:wght@400;700&display=swap">
+<link rel="stylesheet" href="assets/css/tokens.css">
+<link rel="stylesheet" href="assets/css/app.css">
+</head>
+<body>
+
+<div class="play">
+  <header class="play__head">
+    <div style="min-width: 0">
+      <span class="label">Your team</span>
+      <div id="play-team" style="font-family: var(--font-display); font-weight: 700; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;"></div>
+    </div>
+    <div class="row" id="play-status" style="flex: 0 0 auto"></div>
+    <div style="text-align: right; flex: 0 0 auto">
+      <span class="label">Score</span>
+      <div class="play__score" id="play-score">0</div>
+    </div>
+  </header>
+
+  <main class="play__main" id="play-main" aria-live="polite"></main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="assets/js/config.js"></script>
+<script src="assets/js/quiz-model.js"></script>
+<script src="assets/js/show.js"></script>
+<script src="assets/js/store.js"></script>
+<script src="assets/js/ui.js"></script>
+<script src="assets/js/play.js"></script>
+</body>
+</html>
