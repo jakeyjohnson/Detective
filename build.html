@@ -72,6 +72,10 @@
           <span class="check__text">Leaderboard after every question</span>
         </label>
         <label class="check">
+          <input type="checkbox" data-setting="liveVotes">
+          <span class="check__text">Show the vote split on screen as people answer</span>
+        </label>
+        <label class="check">
           <input type="checkbox" data-setting="shuffleOptions">
           <span class="check__text">Shuffle the options for each question</span>
         </label>
@@ -79,6 +83,12 @@
           <input type="checkbox" data-setting="speedBonus">
           <span class="check__text">Bonus points for answering fast</span>
         </label>
+        <p class="field__hint">
+          The live vote split is the bar under each option on the big screen, filling up
+          as answers come in. It never shows which answer is right. Worth knowing: people
+          can see it while they vote, so a clear early lead pulls the undecided towards
+          it. Turn it off for a round where you want independent answers.
+        </p>
         <p class="field__hint">
           The speed bonus adds up to half a question's points again, scaled by how
           much time was left. It rewards quick fingers as much as knowing the answer,

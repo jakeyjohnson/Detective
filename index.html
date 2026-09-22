@@ -42,11 +42,23 @@
     </div>
     <p class="hero__sub">Enter the code on the screen to join the game.</p>
 
-    <!-- Join form. Autofocused and submittable with Enter, because
-         in practice a room of people are typing this at once in a
-         hurry while the host waits. -->
+    <!-- Sign-up form. Everything is submittable with Enter and the
+         first empty field is focused, because in practice a room
+         of people fill this in at once, in a hurry, in the dark,
+         while the host waits. -->
     <form class="stack" id="join-form" novalidate>
-      <div class="field">
+
+      <!-- When the code arrives from a scanned QR there is nothing
+           to type, so it is shown as confirmation instead of an
+           input. The input is used only when someone came here
+           without scanning. -->
+      <div class="field is-hidden" id="code-confirmed">
+        <span class="label">Tonight&rsquo;s game</span>
+        <p class="mono" id="code-shown"
+           style="font-size: var(--fs-500); letter-spacing: 0.2em; color: var(--text-accent); margin: 0;"></p>
+      </div>
+
+      <div class="field" id="code-field">
         <label class="label" for="code">Game code</label>
         <input class="input input--code" id="code" name="code" type="text"
                inputmode="latin" autocomplete="off" autocapitalize="characters"
@@ -54,13 +66,29 @@
                aria-describedby="code-hint">
         <p class="field__hint" id="code-hint">Five characters, shown on the big screen.</p>
       </div>
+
       <div class="field">
-        <label class="label" for="team">Your team name</label>
+        <label class="label" for="team">Your name</label>
         <input class="input" id="team" name="team" type="text"
-               autocomplete="off" maxlength="40" placeholder="The Baker Street Irregulars">
+               autocomplete="name" maxlength="40" placeholder="Jake"
+               aria-describedby="team-hint">
+        <p class="field__hint" id="team-hint">
+          This is what the leaderboard calls you. Playing as a team? Use the team name.
+        </p>
       </div>
+
+      <div class="field" id="password-field">
+        <label class="label" for="venue">Venue password</label>
+        <input class="input input--mono" id="venue" name="venue" type="text"
+               autocomplete="off" autocapitalize="none" spellcheck="false"
+               maxlength="60" aria-describedby="venue-hint">
+        <p class="field__hint" id="venue-hint">
+          On the screen or your table card. Capitals do not matter.
+        </p>
+      </div>
+
       <p class="field__error is-hidden" id="join-error" role="alert"></p>
-      <button class="btn btn--primary btn--lg btn--block" type="submit" id="join-btn">Join the game</button>
+      <button class="btn btn--primary btn--lg btn--block" type="submit" id="join-btn">Sign in and play</button>
     </form>
 
     <!-- Local mode can't accept player devices, so rather than
@@ -111,6 +139,7 @@
   var form = UI.$('#join-form');
   var codeInput = UI.$('#code');
   var teamInput = UI.$('#team');
+  var venueInput = UI.$('#venue');
   var errorEl = UI.$('#join-error');
   var joinBtn = UI.$('#join-btn');
 
@@ -132,15 +161,21 @@
     UI.$('#hero-title').classList.add('is-hidden');
   }
 
-  /* A code can arrive in the URL from a QR code on the table, in
-     which case the player only has to name their team. */
-  var prefill = UI.param('code', '');
-  if (prefill) codeInput.value = prefill.toUpperCase().slice(0, 5);
+  /* The code arrives in the URL from the QR on the screen, in
+     which case there is nothing to type and the field is replaced
+     by a confirmation of which game this is. */
+  var prefill = (UI.param('code', '') || '').toUpperCase().slice(0, 5);
+  if (prefill) {
+    codeInput.value = prefill;
+    UI.$('#code-field').classList.add('is-hidden');
+    UI.$('#code-shown').textContent = prefill;
+    UI.$('#code-confirmed').classList.remove('is-hidden');
+  }
 
   if (!Store.isCloud) {
     UI.$('#local-notice').classList.remove('is-hidden');
     joinBtn.disabled = true;
-    joinBtn.textContent = 'Joining is off in local mode';
+    joinBtn.textContent = 'Sign-up is off in local mode';
   }
 
   /* Force the code to the stored alphabet as it is typed. Players
@@ -154,6 +189,16 @@
 
   if (!prefill) codeInput.focus(); else teamInput.focus();
 
+  /* Pressing Enter in the name field should move on rather than
+     submit a form that is still missing the password — a room of
+     people all hit Enter out of habit. */
+  teamInput.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Enter' && !venueInput.value.trim()) {
+      ev.preventDefault();
+      venueInput.focus();
+    }
+  });
+
   function fail(message) {
     errorEl.textContent = message;
     errorEl.classList.remove('is-hidden');
@@ -165,31 +210,41 @@
 
     var code = codeInput.value.trim().toUpperCase();
     var team = teamInput.value.trim();
+    var venue = venueInput.value;
 
     if (code.length < 5) return fail('That code looks short. Check the screen.');
-    if (!team) return fail('Give your team a name.');
+    if (!team) return fail('Put your name in.');
 
     joinBtn.disabled = true;
-    joinBtn.textContent = 'Joining…';
+    joinBtn.textContent = 'Signing in…';
 
-    /* Check the game exists before creating a team row, so a
-       mistyped code says "no game with that code" rather than
-       silently parking the player in a lobby that never starts. */
+    /* Check the game exists first, so a mistyped code says "no
+       game with that code" rather than silently parking someone
+       in a lobby that never starts. The venue password is checked
+       by the database, not here — this page never sees it. */
     Store.session.read(code)
       .then(function (session) {
         if (!session) throw new Error('No game with that code. Check the screen and try again.');
         var state = session.state || {};
         if (state.phase === 'ended') throw new Error('That game has finished.');
-        return Store.session.joinTeam(code, team);
+        return Store.session.joinTeam(code, team, venue);
       })
       .then(function (t) {
         UI.identity.set(code, t);
         window.location.href = 'play.html?code=' + encodeURIComponent(code);
       })
       .catch(function (err) {
-        fail(err && err.message ? err.message : 'Could not join. Try again.');
+        fail(err && err.message ? err.message : 'Could not sign in. Try again.');
         joinBtn.disabled = false;
-        joinBtn.textContent = 'Join the game';
+        joinBtn.textContent = 'Sign in and play';
+
+        /* A wrong password is the one worth re-focusing: it is the
+           field most likely mistyped and the only one the player
+           can fix without being told anything else. */
+        if (/venue password/i.test(String(err && err.message))) {
+          venueInput.select();
+          venueInput.focus();
+        }
       });
   });
 })();

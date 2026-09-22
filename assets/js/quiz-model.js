@@ -244,6 +244,7 @@
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       settings: {
+        liveVotes: true,          // show the split on screen as people vote
         speedBonus: false,        // award up to +50% for answering early
         showBoardAfterEach: false,// leaderboard between every question
         showBoardAfterRound: true,
@@ -602,8 +603,47 @@
     return rows;
   };
 
+  /* Live vote counts, for showing the split WHILE people are
+     still voting.
+     ---------------------------------------------------------
+     Deliberately separate from `distribution` below, and
+     deliberately not built from it: this payload goes on screen
+     mid-question, so it must not carry which option is correct.
+     There is no `correct` field here, and there is no code path
+     that adds one — a filter over the reveal payload would be one
+     refactor away from leaking the answer to the room.
+     --------------------------------------------------------- */
+  Model.liveVotes = function (question, session) {
+    if (Model.inputMode(question) !== 'choice') return null;
+    var byQ = (session.answers || {})[question.id] || {};
+    var counts = {};
+    question.options.forEach(function (o) { counts[o.id] = 0; });
+
+    var total = 0;
+    Object.keys(byQ).forEach(function (teamId) {
+      var v = byQ[teamId] && byQ[teamId].value;
+      if (v == null) return;
+      total++;
+      [].concat(v).forEach(function (id) {
+        if (counts[id] != null) counts[id]++;
+      });
+    });
+
+    return {
+      total: total,
+      rows: question.options.map(function (o) {
+        return {
+          id: o.id,
+          count: counts[o.id] || 0,
+          share: total ? (counts[o.id] || 0) / total : 0
+        };
+      })
+    };
+  };
+
   /* What the room sees at reveal: how the field split across the
-     options. Only meaningful for choice questions. */
+     options, with the correct one flagged. Only meaningful for
+     choice questions. */
   Model.distribution = function (question, session) {
     if (Model.inputMode(question) !== 'choice') return null;
     var byQ = (session.answers || {})[question.id] || {};

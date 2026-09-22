@@ -34,6 +34,7 @@
   var show = {
     code: null,
     quiz: null,
+    venuePassword: '',
     cursor: -1,
     phase: P.LOBBY,
     accepting: false,
@@ -103,7 +104,35 @@
 
       var preselect = UI.param('quiz');
 
-      UI.replace(els.quizPicker, list.map(function (item) {
+      /* One password for the night, set here rather than in a
+         config file, because it changes per venue and per show and
+         the host is the person who knows it. */
+      var venueInput = UI.el('input.input.input--mono', {
+        type: 'text', id: 'venue-password', maxlength: 60,
+        placeholder: 'Leave empty for no password',
+        'aria-label': 'Venue password for tonight'
+      });
+
+      var venuePanel = UI.el('div.panel.stack', {}, [
+        UI.el('div.row.row--between', {}, [
+          UI.el('span.label.label--bright', { text: 'Venue password' }),
+          UI.el('button.btn.btn--sm', {
+            type: 'button', text: 'Suggest one',
+            onclick: function () { venueInput.value = suggestPassword(); }
+          })
+        ]),
+        venueInput,
+        UI.el('p.field__hint', {
+          text: Store.isCloud
+            ? 'Players type this when they sign up, along with their name. Put it on the ' +
+              'screen or a table card. It stops someone who got the join code second-hand ' +
+              'from playing along from home. Capitals and stray spaces are ignored.'
+            : 'Local mode has no player devices, so this is not used tonight. ' +
+              'See README.md to switch them on.'
+        })
+      ]);
+
+      UI.replace(els.quizPicker, [venuePanel].concat(list.map(function (item) {
         var count = Model.questionCount(item);
         var problems = Model.validate(item).filter(function (i) { return i.level === 'error'; }).length;
 
@@ -122,19 +151,32 @@
               type: 'button',
               text: 'Start show',
               disabled: !count,
-              onclick: function () { startShow(item.id); }
+              onclick: function () { startShow(item.id, venueInput.value); }
             })
           ])
         ]);
-      }));
+      })));
     });
   }
 
-  function startShow(quizId) {
+  /* Suggested passwords are memorable and easy to shout across a
+     noisy room, which matters more here than entropy — the thing
+     it defends against is someone playing from home, not an
+     attacker with a word list. */
+  var SUGGESTIONS = [
+    'lamplight', 'alibi', 'redherring', 'cluedo', 'magnifier', 'stakeout',
+    'moriarty', 'gaslight', 'whodunnit', 'fingerprint', 'coldcase', 'inkwell'
+  ];
+  function suggestPassword() {
+    return SUGGESTIONS[Math.floor(Math.random() * SUGGESTIONS.length)];
+  }
+
+  function startShow(quizId, venuePassword) {
     Store.quizzes.get(quizId).then(function (quiz) {
       if (!quiz) throw new Error('That case has gone missing.');
 
       show.quiz = quiz;
+      show.venuePassword = String(venuePassword == null ? '' : venuePassword).trim();
       show.code = Model.makeCode(5);
       show.cursor = -1;
       show.phase = P.LOBBY;
@@ -147,8 +189,15 @@
         code: show.code,
         quizId: quiz.id,
         quizTitle: quiz.title,
+        venuePassword: show.venuePassword,     // local driver keeps it here
         state: buildState()
       });
+    }).then(function () {
+      /* Cloud mode stores it in its own table, which has no read
+         policy at all — so it is set, never fetched. */
+      if (Store.isCloud && Store.session.setVenuePassword) {
+        return Store.session.setVenuePassword(show.code, show.venuePassword);
+      }
     }).then(function () {
       /* Put the code in the URL so a reload rejoins this show
          instead of starting a second one with a new code. */
@@ -180,6 +229,10 @@
 
         show.quiz = quiz;
         show.code = code;
+        /* Deliberately not recoverable: the password is write-only
+           by design. After a reload the control room can no longer
+           display it, and says so rather than showing a blank. */
+        show.venuePassword = '';
 
         /* Pick the show back up exactly where the pushed state
            says it was — not at the start. */
@@ -762,14 +815,39 @@
     UI.replace(els.transport, buttons);
   }
 
+  /* The URL players land on after scanning. Absolute, because it
+     goes into a QR code scanned by a phone that has never been to
+     this site. */
+  function signupUrl() {
+    var base = cfg.joinUrl;
+    if (base) {
+      if (!/^https?:\/\//.test(base)) base = 'https://' + base;
+      if (!/\.html$/.test(base)) {
+        if (!/\/$/.test(base)) base += '/';
+        base += 'index.html';
+      }
+    } else {
+      base = window.location.href.split('?')[0].replace(/host\.html$/, 'index.html');
+    }
+    return base + '?code=' + encodeURIComponent(show.code);
+  }
+
   function renderLinks() {
     var base = window.location.href.replace(/host\.html.*$/, '');
+
+    /* The projection link carries the venue password so the big
+       screen can show it. The password is NOT in the pushed state,
+       so a stranger opening the projection with only the code
+       sees no password. */
+    var presentHref = 'present.html?code=' + show.code +
+      (show.venuePassword ? '&vp=' + encodeURIComponent(show.venuePassword) : '');
+
     var links = [
-      { label: 'Projection screen', href: 'present.html?code=' + show.code, hint: 'Put this on the projector, then press F for full screen' },
+      { label: 'Projection screen', href: presentHref, hint: 'Put this on the projector, then press F for full screen' },
       { label: 'Leaderboard', href: 'leaderboard.html?code=' + show.code, hint: 'Anyone can open this at any time' }
     ];
     if (Store.isCloud) {
-      links.push({ label: 'Player join page', href: 'index.html?code=' + show.code, hint: 'What the room types in' });
+      links.push({ label: 'Sign-up page', href: 'index.html?code=' + show.code, hint: 'Where the QR code sends people' });
     }
 
     UI.replace(els.links, [
@@ -790,6 +868,7 @@
         UI.el('p.field__hint', { text: l.hint })
       ]);
     })).concat([
+      Store.isCloud ? qrPanel() : null,
       Store.isCloud ? null : UI.el('div.notice.notice--accent', {}, [
         UI.el('div', {}, [
           UI.el('strong', { text: 'Local mode. ' }),
@@ -799,6 +878,70 @@
         ])
       ])
     ]));
+  }
+
+  /* The QR the room scans, plus the two things they must be told:
+     the code, for anyone whose camera will not cooperate, and
+     tonight's password. */
+  function qrPanel() {
+    var url = signupUrl();
+    var children = [
+      UI.el('div.row.row--between', {}, [
+        UI.el('span.label.label--bright', { text: 'For the room' }),
+        UI.el('button.btn.btn--sm', {
+          type: 'button', text: 'Copy sign-up link',
+          onclick: function () {
+            UI.copy(url)
+              .then(function () { UI.toast('Sign-up link copied.'); })
+              .catch(function (e) { UI.toast(e.message, 'error'); });
+          }
+        })
+      ])
+    ];
+
+    if (window.DetectiveQR) {
+      try {
+        children.push(UI.el('div', {
+          style: 'background: var(--bg-plate); padding: var(--sp-3); ' +
+                 'border-radius: var(--radius-sm); max-width: 13rem; margin: 0 auto;',
+          html: window.DetectiveQR.svg(url, { label: 'Scan to sign up' })
+        }));
+      } catch (err) {
+        /* Only reachable if the sign-up URL outgrows a version 10
+           code, which is worth being told about rather than
+           rendering an empty box. */
+        children.push(UI.el('p.field__error', {
+          text: 'That sign-up URL is too long for a QR code: ' + err.message +
+                ' Set a shorter joinUrl in config.js.'
+        }));
+      }
+    }
+
+    children.push(UI.el('div.row.row--between', {}, [
+      UI.el('span.label', { text: 'Code' }),
+      UI.el('strong.mono', {
+        style: 'font-size: var(--fs-500); letter-spacing: 0.15em; color: var(--text-accent)',
+        text: show.code
+      })
+    ]));
+
+    children.push(UI.el('div.row.row--between', {}, [
+      UI.el('span.label', { text: 'Venue password' }),
+      UI.el('strong.mono', {
+        style: 'color: ' + (show.venuePassword ? 'var(--text-accent)' : 'var(--text-faint)'),
+        text: show.venuePassword || 'not shown after a reload'
+      })
+    ]));
+
+    children.push(UI.el('p.field__hint', {
+      text: show.venuePassword
+        ? 'The projection link above carries the password so the big screen can show it. ' +
+          'It is never in the data the screens read, so it cannot be looked up from the code.'
+        : 'Set at the start of the show. It is stored write-only, so the control room ' +
+          'cannot read it back — start a new show to change it.'
+    }));
+
+    return UI.el('div.panel.stack', {}, children);
   }
 
   function renderSide() {

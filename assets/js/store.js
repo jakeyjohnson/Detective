@@ -81,6 +81,30 @@
 
   var listeners = { state: [], teams: [], answers: [] };
 
+  /* The join function raises bare codes so that both drivers can
+     produce the same wording. A player reading "duplicate key
+     value violates unique constraint" learns nothing. */
+  var JOIN_ERRORS = {
+    NAME_REQUIRED:  'Give your team a name.',
+    NAME_TAKEN:     'That name is taken. Pick another.',
+    NO_SESSION:     'No game with that code. Check the screen and try again.',
+    SESSION_ENDED:  'That game has finished.',
+    BAD_PASSWORD:   'That is not tonight\u2019s venue password.'
+  };
+
+  function joinError(code) {
+    return new Error(JOIN_ERRORS[code] || 'Could not join. Try again.');
+  }
+
+  /* Trimmed and case-insensitive, matching the database function.
+     A venue password is a word shouted across a room, not a
+     secret typed carefully. */
+  function samePassword(given, required) {
+    var a = String(given == null ? '' : given).trim().toLowerCase();
+    var b = String(required == null ? '' : required).trim().toLowerCase();
+    return a === b;
+  }
+
   function emit(kind, code, payload) {
     (listeners[kind] || []).forEach(function (l) {
       if (l.code === code) {
@@ -142,7 +166,7 @@
 
     session: {
       create: function (session) {
-        lsSet(LS_SESSION + session.code, session);
+        lsSet(LS_SESSION + session.code, session);   // carries venuePassword when set
         lsSet(LS_TEAMS + session.code, []);
         lsSet(LS_ANSWERS + session.code, []);
         var idx = lsGet(LS_INDEX, {});
@@ -169,10 +193,34 @@
 
       watch: function (code, cb) { return on('state', code, cb); },
 
-      joinTeam: function (code, name) {
+      /* Local mode keeps the password alongside the session in
+         this browser's storage. There is no server to hide it
+         from and only one machine involved, so the check is a
+         convenience rather than a control — said plainly in the
+         README rather than implied to be more. */
+      setVenuePassword: function (code, password) {
+        var s = lsGet(LS_SESSION + code, null);
+        if (!s) return Promise.reject(new Error('No such session: ' + code));
+        s.venuePassword = String(password == null ? '' : password).trim();
+        lsSet(LS_SESSION + code, s);
+        return Promise.resolve();
+      },
+
+      joinTeam: function (code, name, password) {
+        var session = lsGet(LS_SESSION + code, null);
+        if (!session) return Promise.reject(joinError('NO_SESSION'));
+        if (session.state && session.state.phase === 'ended') {
+          return Promise.reject(joinError('SESSION_ENDED'));
+        }
+
+        var required = session.venuePassword || '';
+        if (required && !samePassword(password, required)) {
+          return Promise.reject(joinError('BAD_PASSWORD'));
+        }
+
         var teams = lsGet(LS_TEAMS + code, []);
         var clean = String(name || '').trim().slice(0, 40);
-        if (!clean) return Promise.reject(new Error('Give your team a name.'));
+        if (!clean) return Promise.reject(joinError('NAME_REQUIRED'));
 
         /* Names are the only way the host and the room tell teams
            apart, so duplicates are refused rather than silently
@@ -180,7 +228,7 @@
         var taken = teams.some(function (t) {
           return t.name.toLowerCase() === clean.toLowerCase();
         });
-        if (taken) return Promise.reject(new Error('That name is taken. Pick another.'));
+        if (taken) return Promise.reject(joinError('NAME_TAKEN'));
 
         var team = { id: Model.uid('t'), name: clean, joinedAt: new Date().toISOString() };
         teams.push(team);
@@ -463,23 +511,41 @@
             function () { return self.read(code); });
         },
 
-        joinTeam: function (code, name) {
-          var clean = String(name || '').trim().slice(0, 40);
-          if (!clean) return Promise.reject(new Error('Give your team a name.'));
-          return db.from('quiz_teams')
-            .insert({ session_code: code, name: clean })
-            .select('id,name,joined_at')
-            .single()
-            .then(function (res) {
-              if (res.error) {
-                /* 23505 = unique violation on (session_code, lower(name)).
-                   Translate it, because "duplicate key value violates
-                   unique constraint" is not a message for a player. */
-                if (res.error.code === '23505') throw new Error('That name is taken. Pick another.');
-                throw res.error;
-              }
-              return rowToTeam(res.data);
-            });
+        /* Written to a table with no SELECT policy at all, so it
+           cannot be read back out — not even by the host. To
+           change it, set a new one. */
+        setVenuePassword: function (code, password) {
+          return db.from('quiz_session_keys').upsert({
+            session_code: code,
+            venue_password: String(password == null ? '' : password).trim()
+          }, { onConflict: 'session_code' }).then(function (res) {
+            if (res.error) throw res.error;
+          });
+        },
+
+        /* Joining goes through the database function rather than a
+           direct insert: that is what makes the venue password
+           enforceable. Players have no insert policy on
+           quiz_teams, so there is no way around it. */
+        joinTeam: function (code, name, password) {
+          return db.rpc('quiz_join_team', {
+            p_code: String(code || '').trim().toUpperCase(),
+            p_name: String(name || ''),
+            p_password: String(password == null ? '' : password)
+          }).then(function (res) {
+            if (res.error) {
+              /* The function raises bare codes; anything else is a
+                 real fault worth surfacing as-is. */
+              var msg = String((res.error && res.error.message) || '');
+              var known = Object.keys(JOIN_ERRORS).filter(function (k) {
+                return msg.indexOf(k) !== -1;
+              })[0];
+              if (known) throw joinError(known);
+              throw res.error;
+            }
+            if (!res.data) throw joinError('NO_SESSION');
+            return rowToTeam(res.data);
+          });
         },
 
         removeTeam: function (code, teamId) {

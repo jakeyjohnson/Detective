@@ -53,6 +53,28 @@ create table if not exists quiz_sessions (
 
 
 -- ---------------------------------------------------------
+-- 2b. Venue passwords.
+--
+--     Kept in their OWN table, never on quiz_sessions, because
+--     the session row is world-readable — that is how the
+--     projection screen and the leaderboard work. A password
+--     sitting in that row would be readable by anyone holding
+--     the join code, which is exactly the person it is meant to
+--     stop.
+--
+--     Nothing can read this table with the public key. Players
+--     never send their password anywhere it could be read back:
+--     they call quiz_join_team() below, which checks it inside
+--     the database and returns only the team row.
+-- ---------------------------------------------------------
+create table if not exists quiz_session_keys (
+  session_code    text primary key references quiz_sessions (code) on delete cascade,
+  venue_password  text not null default '',
+  created_at      timestamptz not null default now()
+);
+
+
+-- ---------------------------------------------------------
 -- 3. Teams — who is playing.
 -- ---------------------------------------------------------
 create table if not exists quiz_teams (
@@ -108,10 +130,11 @@ create index if not exists quiz_answers_session_idx
 -- ---------------------------------------------------------
 -- 5. Row-level security
 -- ---------------------------------------------------------
-alter table quiz_quizzes  enable row level security;
-alter table quiz_sessions enable row level security;
-alter table quiz_teams    enable row level security;
-alter table quiz_answers  enable row level security;
+alter table quiz_quizzes      enable row level security;
+alter table quiz_sessions     enable row level security;
+alter table quiz_session_keys enable row level security;
+alter table quiz_teams        enable row level security;
+alter table quiz_answers      enable row level security;
 
 -- Re-runnable: drop then recreate.
 drop policy if exists quiz_quizzes_host_all      on quiz_quizzes;
@@ -119,8 +142,10 @@ drop policy if exists quiz_sessions_public_read  on quiz_sessions;
 drop policy if exists quiz_sessions_host_write   on quiz_sessions;
 drop policy if exists quiz_sessions_host_update  on quiz_sessions;
 drop policy if exists quiz_sessions_host_delete  on quiz_sessions;
+drop policy if exists quiz_keys_host_all         on quiz_session_keys;
 drop policy if exists quiz_teams_public_read     on quiz_teams;
 drop policy if exists quiz_teams_public_insert   on quiz_teams;
+drop policy if exists quiz_teams_host_insert     on quiz_teams;
 drop policy if exists quiz_teams_host_delete     on quiz_teams;
 drop policy if exists quiz_answers_public_read   on quiz_answers;
 drop policy if exists quiz_answers_public_insert on quiz_answers;
@@ -153,20 +178,23 @@ create policy quiz_sessions_host_update on quiz_sessions
 create policy quiz_sessions_host_delete on quiz_sessions
   for delete using (auth.uid() is not null);
 
--- Teams: anyone may read the roster (it goes on the projection)
--- and anyone may join a session that exists and has not ended.
+-- Venue passwords: the host writes them, nobody reads them. There
+-- is deliberately no SELECT policy at all, so even a signed-in
+-- host cannot read one back — they set a new one instead.
+create policy quiz_keys_host_all on quiz_session_keys
+  for all
+  using (auth.uid() is not null)
+  with check (auth.uid() is not null);
+
+-- Teams: anyone may read the roster (it goes on the projection).
 create policy quiz_teams_public_read on quiz_teams
   for select using (true);
 
-create policy quiz_teams_public_insert on quiz_teams
-  for insert
-  with check (
-    exists (
-      select 1 from quiz_sessions s
-      where s.code = session_code
-        and coalesce(s.state ->> 'phase', 'lobby') <> 'ended'
-    )
-  );
+-- But NOT insert. Players join through quiz_join_team() below, so
+-- that the venue password is actually enforced; a direct insert
+-- policy here would let anyone skip it.
+create policy quiz_teams_host_insert on quiz_teams
+  for insert with check (auth.uid() is not null);
 
 create policy quiz_teams_host_delete on quiz_teams
   for delete using (auth.uid() is not null);
@@ -206,6 +234,77 @@ create policy quiz_answers_public_update on quiz_answers
 
 create policy quiz_answers_host_update on quiz_answers
   for update using (auth.uid() is not null);
+
+
+-- ---------------------------------------------------------
+-- 5b. Joining a game.
+--
+--     The only way a player gets a team row. Runs as the
+--     definer, so it can read quiz_session_keys when the caller
+--     cannot, checks the venue password inside the database, and
+--     returns just the new team.
+--
+--     The password comparison is trimmed and case-insensitive on
+--     purpose: it is a word shouted across a room or printed on
+--     a table card, and "Bellchamber" failing because someone
+--     typed "bellchamber " is a person who cannot play.
+-- ---------------------------------------------------------
+create or replace function quiz_join_team(p_code text, p_name text, p_password text default '')
+returns quiz_teams
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_required text;
+  v_phase    text;
+  v_name     text := btrim(coalesce(p_name, ''));
+  v_team     quiz_teams;
+begin
+  if v_name = '' then
+    raise exception 'NAME_REQUIRED';
+  end if;
+  v_name := left(v_name, 40);
+
+  select coalesce(s.state ->> 'phase', 'lobby')
+    into v_phase
+    from quiz_sessions s
+   where s.code = upper(btrim(p_code));
+
+  if v_phase is null then
+    raise exception 'NO_SESSION';
+  end if;
+  if v_phase = 'ended' then
+    raise exception 'SESSION_ENDED';
+  end if;
+
+  select k.venue_password
+    into v_required
+    from quiz_session_keys k
+   where k.session_code = upper(btrim(p_code));
+
+  if coalesce(btrim(v_required), '') <> '' then
+    if lower(btrim(coalesce(p_password, ''))) <> lower(btrim(v_required)) then
+      raise exception 'BAD_PASSWORD';
+    end if;
+  end if;
+
+  insert into quiz_teams (session_code, name)
+  values (upper(btrim(p_code)), v_name)
+  returning * into v_team;
+
+  return v_team;
+
+exception
+  when unique_violation then
+    raise exception 'NAME_TAKEN';
+end;
+$$;
+
+-- Callable by players, who are anonymous. Nothing else about
+-- the keys table is reachable by them.
+revoke all on function quiz_join_team(text, text, text) from public;
+grant execute on function quiz_join_team(text, text, text) to anon, authenticated;
 
 
 -- ---------------------------------------------------------
@@ -328,4 +427,12 @@ $$;
 -- 3. Put the project URL and anon key in
 --      assets/js/config.js
 --    and set  requireLogin: true  in the same file.
+--
+-- A note on venue passwords: they stop someone who has the join
+-- code from somewhere other than your room. They are checked
+-- inside the database and are never sent to a browser, but they
+-- are one shared word, so treat them as a door policy, not as
+-- authentication. The control room's projection link carries the
+-- password so the big screen can show it; the public state never
+-- does.
 -- =========================================================

@@ -133,6 +133,7 @@
       render();
     } else {
       renderStatus();
+      updateVotes();
     }
   }
 
@@ -220,6 +221,7 @@
     }
 
     renderStatus();
+    updateVotes();
   }
 
   function renderQuestion() {
@@ -271,6 +273,21 @@
        accepts an array either way. */
     return UI.el('div.answer-list', {}, q.options.map(function (opt, i) {
       var chosen = [].concat(draft.value || []).indexOf(opt.id) !== -1;
+
+      var children = [
+        UI.el('span.answer-btn__key', { text: UI.optionLetter(i) }),
+        UI.el('span', { style: 'flex: 1 1 auto; min-width: 0', text: opt.text })
+      ];
+
+      /* The live split, on the device people are voting from.
+         Carries no correctness — the payload it reads has none. */
+      if (state.votes) {
+        children.push(UI.el('span.answer-btn__pct', { dataset: { pct: opt.id }, text: '' }));
+        children.push(UI.el('span.answer-btn__bar', {}, [
+          UI.el('span.answer-btn__bar-fill', { dataset: { bar: opt.id } })
+        ]));
+      }
+
       return UI.el('button.answer-btn', {
         type: 'button',
         'aria-pressed': chosen ? 'true' : 'false',
@@ -280,11 +297,23 @@
           render();
           send();
         }
-      }, [
-        UI.el('span.answer-btn__key', { text: UI.optionLetter(i) }),
-        UI.el('span', { text: opt.text })
-      ]);
+      }, children);
     }));
+  }
+
+  /* Update the vote bars without re-rendering.
+     A re-render would rebuild the buttons under the player's
+     thumb every time somebody else votes, which on a phone means
+     a mis-tap. */
+  function updateVotes() {
+    if (!state || !state.votes) return;
+    var total = state.votes.total || 0;
+    state.votes.rows.forEach(function (row) {
+      var pct = UI.$('[data-pct="' + row.id + '"]');
+      var bar = UI.$('[data-bar="' + row.id + '"]');
+      if (pct) pct.textContent = total ? Math.round(row.share * 100) + '%' : '';
+      if (bar) bar.style.transform = 'scaleX(' + (total ? row.share : 0).toFixed(3) + ')';
+    });
   }
 
   function textInput(q, locked) {

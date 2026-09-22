@@ -770,6 +770,42 @@ img, video{ max-width: 100%; display: block; }
 
 .answer-list{ display: flex; flex-direction: column; gap: var(--sp-3); }
 
+/* Live vote share on the player's own device. Neutral gold, and
+   fed by a payload that carries no correctness, so watching the
+   bars cannot tell you the answer — only what the room thinks. */
+.answer-btn{ position: relative; overflow: hidden; }
+
+.answer-btn__pct{
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: var(--fs-200);
+  font-weight: var(--fw-bold);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  min-width: 2.75em;
+  text-align: right;
+}
+
+.answer-btn__bar{
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 4px;
+  background: var(--line-secondary);
+}
+.answer-btn__bar-fill{
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+
+/* Once marked, correctness owns the colour and the live bar would
+   only muddy it. */
+.answer-btn--correct .answer-btn__bar-fill{ background: var(--state-correct); }
+.answer-btn--wrong .answer-btn__bar-fill{ background: var(--state-wrong); }
+
 /* Ordering interaction: move up/down rather than drag. Drag is
    unreliable on touch and impossible by keyboard; buttons work
    everywhere and a quiz answer must not be a dexterity test. */

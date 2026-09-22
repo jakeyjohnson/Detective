@@ -512,6 +512,92 @@ check('distribution counts the split across options', () => {
   eq(Math.round(dist.rows[1].share * 100), 67, 'share as a percentage');
 });
 
+check('live votes carry counts but never correctness', () => {
+  const q = choiceQuestion(1);
+  const session = {
+    teams: [],
+    answers: {
+      [q.id]: {
+        t1: { value: [q.options[0].id] },
+        t2: { value: [q.options[1].id] },
+        t3: { value: [q.options[1].id] },
+        t4: { value: [q.options[1].id] }
+      }
+    }
+  };
+  const live = Model.liveVotes(q, session);
+  eq(live.total, 4, 'four votes');
+  eq(live.rows.map(r => r.count), [1, 3, 0, 0], 'counts per option');
+  eq(Math.round(live.rows[1].share * 100), 75, 'share as a percentage');
+
+  /* The whole point: this goes on the projector and onto every
+     phone WHILE people are still voting. If it carried the
+     correct flag, the room could read the answer off the screen
+     before anyone had committed. */
+  ok(live.rows.every(r => !('correct' in r)), 'no correct flag on any row');
+  ok(!JSON.stringify(live).includes('correct'), 'the serialised payload has no correctness at all');
+});
+
+check('live votes ignore teams that have not answered', () => {
+  const q = choiceQuestion(1);
+  const live = Model.liveVotes(q, {
+    teams: [{ id: 't1' }, { id: 't2' }],
+    answers: { [q.id]: { t1: { value: [q.options[0].id] }, t2: { value: null } } }
+  });
+  eq(live.total, 1, 'only the team that answered counts');
+  eq(live.rows.map(r => r.count), [1, 0, 0, 0], 'counts');
+});
+
+check('live votes with nobody in yet are all zero, not NaN', () => {
+  const q = choiceQuestion(1);
+  const live = Model.liveVotes(q, { teams: [], answers: {} });
+  eq(live.total, 0, 'no votes');
+  eq(live.rows.map(r => r.share), [0, 0, 0, 0], 'shares are zero rather than 0/0');
+});
+
+check('the live vote split is only pushed while the question is open', () => {
+  const quiz = Model.newQuiz('Votes');
+  const q = choiceQuestion(1);
+  q.explanation = 'It was the butler.';
+  quiz.rounds[0].questions = [q];
+  quiz.settings.liveVotes = true;
+
+  const ctx = {
+    code: 'ABCDE', quiz, cursor: 0, teams: [{ id: 't1', name: 'A', joinedAt: '' }],
+    answers: [{ id: 'a1', questionId: q.id, teamId: 't1', value: [q.options[0].id] }]
+  };
+
+  const open = Show.buildState({ ...ctx, phase: 'question' });
+  ok(open.votes, 'present while the question is open');
+  eq(open.votes.total, 1, 'counted');
+  /* And still nothing about the answer in the whole state. */
+  ok(!JSON.stringify(open).includes('butler'), 'no answer text mid-question');
+  ok(!/"correct"\s*:\s*true/.test(JSON.stringify(open)), 'no correct flag mid-question');
+
+  for (const phase of ['lobby', 'round-intro', 'closed', 'reveal', 'board']) {
+    eq(Show.buildState({ ...ctx, phase }).votes, null, `absent during "${phase}"`);
+  }
+});
+
+check('the live vote split can be turned off for a quiz', () => {
+  const quiz = Model.newQuiz('No votes');
+  const q = choiceQuestion(1);
+  quiz.rounds[0].questions = [q];
+  quiz.settings.liveVotes = false;
+
+  const state = Show.buildState({
+    code: 'ABCDE', quiz, cursor: 0, phase: 'question',
+    teams: [{ id: 't1', name: 'A', joinedAt: '' }],
+    answers: [{ id: 'a1', questionId: q.id, teamId: 't1', value: [q.options[0].id] }]
+  });
+  eq(state.votes, null, 'not pushed when the setting is off');
+});
+
+check('live votes are undefined for non-choice questions', () => {
+  eq(Model.liveVotes(Model.newQuestion('standard'), { answers: {} }), null, 'text question');
+  eq(Model.liveVotes(Model.newQuestion('numeric'), { answers: {} }), null, 'numeric question');
+});
+
 check('distribution is undefined for non-choice questions', () => {
   eq(Model.distribution(Model.newQuestion('standard'), { answers: {} }), null, 'text question');
 });

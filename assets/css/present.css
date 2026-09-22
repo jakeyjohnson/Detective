@@ -154,6 +154,59 @@ body.stage{
 }
 .stage__option-text{ flex: 1 1 auto; min-width: 0; }
 
+/* ---------------------------------------------------------
+   Live vote share
+   ---------------------------------------------------------
+   The bar fills along the bottom edge of the option and the
+   percentage sits at its right. Both are neutral gold: this is
+   on screen mid-question, so nothing about it may hint at which
+   option is correct.
+
+   The transition is slow (--dur-stage) on purpose. Bars that
+   snap on every vote are a distraction at projection scale; a
+   bar that eases makes the room feel the swing.
+   --------------------------------------------------------- */
+.stage__option{ position: relative; overflow: hidden; }
+
+.stage__option-pct{
+  flex: 0 0 auto;
+  font-family: var(--font-mono);
+  font-size: 0.62em;
+  font-weight: var(--fw-bold);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+  min-width: 2.6em;
+  text-align: right;
+}
+
+.stage__option-bar{
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: clamp(5px, 0.7vh, 11px);
+  background: var(--line-secondary);
+}
+.stage__option-bar-fill{
+  display: block;
+  height: 100%;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-stage) var(--ease-out);
+}
+
+.stage__votetotal{
+  font-family: var(--font-mono);
+  font-size: var(--fs-proj-label);
+  letter-spacing: var(--ls-widest);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin: 0;
+}
+
+/* At the reveal the bars are gone and the dimming takes over, so
+   the percentage must not linger on a dimmed option. */
+.stage__option--dim .stage__option-pct{ opacity: 0.5; }
+
 /* Reveal states. The wrong options recede rather than turning
    red — four red boxes and one green reads as failure; dimmed
    boxes and one lit box reads as an answer. */
@@ -220,10 +273,13 @@ body.stage{
 }
 .stage__joinurl{
   font-family: var(--font-mono);
-  font-size: var(--fs-proj-meta);
+  font-size: clamp(1rem, 2.2vw, 2.25rem);
+  font-weight: var(--fw-bold);
   letter-spacing: var(--ls-wide);
-  color: var(--text-secondary);
-  word-break: break-all;
+  color: var(--text-primary);
+  line-height: 1;
+  margin: 0;
+  word-break: break-word;
 }
 
 /* Lobby roster. Wraps into as many rows as it needs and shrinks
@@ -248,6 +304,50 @@ body.stage{
   animation: scene-in var(--dur-base) var(--ease-out);
 }
 .stage__roster.is-crowded .stage__roster-item{ font-size: var(--fs-proj-label); padding: var(--sp-1) var(--sp-3); }
+
+/* ---------------------------------------------------------
+   Sign-up (lobby) screen
+   ---------------------------------------------------------
+   A QR code needs a light quiet zone to scan, so it sits on the
+   cream plate rather than on the dark ground. Sized by viewport
+   height as well as width so it stays scannable from the back of
+   a long room without pushing the code and password off screen.
+   --------------------------------------------------------- */
+.stage__qr{
+  background: var(--bg-plate);
+  padding: clamp(var(--sp-2), 1.2vh, var(--sp-4));
+  border-radius: var(--radius-sm);
+  border: 2px solid var(--accent);
+  width: clamp(8rem, 26vh, 20rem);
+  line-height: 0;
+}
+.stage__qr svg{ width: 100%; height: auto; display: block; }
+
+/* The typed route, beside the QR. Three labelled values in a row
+   that wraps to a column on a narrow screen. */
+.stage__joinrow{
+  display: flex; flex-wrap: wrap;
+  align-items: flex-start; justify-content: center;
+  gap: clamp(var(--sp-4), 4vw, var(--sp-8));
+  text-align: center;
+}
+.stage__joinlabel{
+  font-family: var(--font-mono);
+  font-size: var(--fs-proj-label);
+  letter-spacing: var(--ls-widest);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin: 0 0 var(--sp-1);
+}
+.stage__joincode{
+  font-family: var(--font-mono);
+  font-size: clamp(1.25rem, 3.2vw, 3.5rem);
+  font-weight: var(--fw-bold);
+  letter-spacing: 0.1em;
+  line-height: 1;
+  color: var(--accent);
+  margin: 0;
+}
 
 /* A real logo on the lobby screen. Capped by height in viewport
    units so a tall logo cannot push the join code off the screen,

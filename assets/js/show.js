@@ -251,6 +251,14 @@
         remainingMs: ctx.timer.remainingMs == null ? null : ctx.timer.remainingMs
       } : null,
 
+      /* Live vote split, only while the question is open and only
+         when the quiz asks for it. Carries no correctness — see
+         Model.liveVotes. */
+      votes: (phase === Show.PHASES.QUESTION && entry &&
+              quiz.settings && quiz.settings.liveVotes)
+        ? Model.liveVotes(entry.question, sessionShape)
+        : null,
+
       accepting: phase === Show.PHASES.QUESTION && !!ctx.accepting,
       mediaState: ctx.mediaState || 'idle',
 

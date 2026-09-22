@@ -22,6 +22,13 @@
 
   var code = (UI.param('code', '') || '').toUpperCase();
 
+  /* Tonight's venue password, passed in the link the control room
+     hands out. Deliberately NOT read from the pushed state: that
+     is world-readable by anyone holding the join code, which is
+     the very person a venue password exists to turn away. So the
+     big screen can show it and a stranger's browser cannot. */
+  var venuePassword = (UI.param('vp', '') || '').trim();
+
   var state = null;
   var receivedAt = 0;
   var lastSignature = '';     // what's rendered, so we only rebuild on real change
@@ -113,6 +120,7 @@
          answers are marked, neither of which changes the
          signature. */
       updateCounts();
+      updateVotes();
       if (state.phase === 'lobby' || state.phase === 'board' ||
           state.phase === 'winner' || state.phase === 'ended') {
         renderScene();
@@ -191,6 +199,11 @@
     }
 
     UI.replace(els.main, [scene]);
+
+    /* Seed the bars from the state the scene was built with, so a
+       screen that joins mid-question shows the split already at
+       its current level rather than at zero. */
+    updateVotes();
   }
 
   function panel(children, wide) {
@@ -211,49 +224,108 @@
   }
 
   function sceneLobby() {
-    var joinTarget = state.joinUrl || '';
-    var children = [
-      UI.el('p.stage__qmeta', { text: 'Join the game' })
-    ];
+    var children = [];
 
     /* The real logo if one is configured, otherwise the built-in
        fingerprint. This is the one screen with room for it. */
-    children.unshift(cfg.logoUrl
+    children.push(cfg.logoUrl
       ? UI.el('img.stage__logo', { src: cfg.logoUrl, alt: '' })
       : UI.el('div.stage__mark', { 'aria-hidden': 'true' }));
 
-    if (Store.isCloud) {
-      children.push(UI.el('p.stage__joinurl', { text: joinTarget }));
-      children.push(UI.el('div.marquee.marquee--stage', { style: 'width: auto' }, [
-        UI.el('div.marquee__inner', {}, [
-          UI.el('p.stage__code', { text: state.code })
-        ])
-      ]));
-    } else {
-      /* Local mode has nothing for the room to type, so the
-         projector shows the show title instead of a code nobody
-         can use. */
+    if (!Store.isCloud) {
+      /* Local mode has nothing for the room to scan or type, so
+         the projector shows the show title rather than a code
+         nobody can use. */
       children.push(UI.el('p.stage__winner-name', { text: state.quizTitle || cfg.showName || '' }));
       if (state.quizSubtitle) children.push(UI.el('p.stage__explain', { text: state.quizSubtitle }));
+      children.push(rosterNode());
+      return panel(children, true);
     }
 
-    var board = state.board || [];
-    if (board.length) {
-      children.push(UI.el('div.stage__roster' + (board.length > 12 ? '.is-crowded' : ''), {},
-        board.map(function (t) {
-          return UI.el('span.stage__roster-item', { text: t.name });
-        })
-      ));
-      if (state.boardTruncated) {
-        children.push(UI.el('p.stage__explain', {
-          text: '+ ' + UI.plural(state.boardTruncated, 'more team')
-        }));
+    children.push(UI.el('p.stage__qmeta', { text: 'Scan to play' }));
+
+    /* The QR, on a cream plate. A code needs light quiet space
+       around it to scan, and a bright plate reads at the back of a
+       room where a dark one does not. */
+    var url = signupUrl();
+    var qr = null;
+    if (window.DetectiveQR && url) {
+      try {
+        qr = UI.el('div.stage__qr', { html: window.DetectiveQR.svg(url, { label: 'Scan to play' }) });
+      } catch (e) {
+        qr = null;    // falls back to the code below, which always works
       }
-    } else if (Store.isCloud) {
-      children.push(UI.el('p.stage__explain', { text: 'Waiting for the first team…' }));
     }
+    if (qr) children.push(qr);
+
+    /* The typed route always stays on screen next to the QR. Some
+       phones will not scan in a dark venue, and a camera that
+       will not focus must not be the end of someone's night. */
+    children.push(UI.el('div.stage__joinrow', {}, [
+      UI.el('div', {}, [
+        UI.el('p.stage__joinlabel', { text: 'or go to' }),
+        UI.el('p.stage__joinurl', { text: displayUrl() })
+      ]),
+      UI.el('div', {}, [
+        UI.el('p.stage__joinlabel', { text: 'code' }),
+        UI.el('p.stage__joincode', { text: state.code })
+      ]),
+      venuePassword
+        ? UI.el('div', {}, [
+            UI.el('p.stage__joinlabel', { text: 'password' }),
+            UI.el('p.stage__joincode', { text: venuePassword })
+          ])
+        : null
+    ]));
+
+    children.push(rosterNode());
 
     return panel(children, true);
+  }
+
+  /* Who has signed up so far. */
+  function rosterNode() {
+    var board = state.board || [];
+    if (!board.length) {
+      return Store.isCloud
+        ? UI.el('p.stage__explain', { text: 'Waiting for the first player…' })
+        : null;
+    }
+    var wrap = UI.el('div.stage__roster' + (board.length > 12 ? '.is-crowded' : ''), {},
+      board.map(function (t) {
+        return UI.el('span.stage__roster-item', { text: t.name });
+      }));
+    if (!state.boardTruncated) return wrap;
+    return UI.el('div.stack.stack--tight', { style: 'align-items: center' }, [
+      wrap,
+      UI.el('p.stage__explain', { text: '+ ' + UI.plural(state.boardTruncated, 'more player') })
+    ]);
+  }
+
+  /* The URL the QR encodes. Built the same way the control room
+     builds it, so the two always agree. */
+  function signupUrl() {
+    var base = state.joinUrl || '';
+    if (base) {
+      if (!/^https?:\/\//.test(base)) base = 'https://' + base;
+      if (!/\.html$/.test(base)) {
+        if (!/\/$/.test(base)) base += '/';
+        base += 'index.html';
+      }
+    } else {
+      base = window.location.href.split('?')[0].replace(/present\.html$/, 'index.html');
+    }
+    return base + '?code=' + encodeURIComponent(state.code || '');
+  }
+
+  /* What the room reads, rather than what the QR encodes: no
+     scheme, no filename, no query string. Nobody types
+     "https://" off a screen. */
+  function displayUrl() {
+    return signupUrl()
+      .replace(/^https?:\/\//, '')
+      .replace(/index\.html.*$/, '')
+      .replace(/\/$/, '');
   }
 
   function sceneRound() {
@@ -324,6 +396,10 @@
       ));
     }
 
+    if (state.votes) {
+      children.push(UI.el('p.stage__votetotal', { id: 'vote-total', text: '' }));
+    }
+
     if (q.timeLimit > 0) {
       children.push(UI.el('div.stage__progress', {}, [
         UI.el('div.stage__progress-bar', { id: 'progress' })
@@ -348,12 +424,56 @@
       options.map(function (opt, i) {
         var isCorrect = reveal && correctIds.indexOf(opt.id) !== -1;
         var cls = reveal ? (isCorrect ? '.stage__option--correct' : '.stage__option--dim') : '';
-        return UI.el('div.stage__option' + cls, {}, [
+
+        var children = [
           UI.el('span.stage__option-key', { text: UI.optionLetter(i) }),
           UI.el('span.stage__option-text', { text: opt.text })
-        ]);
+        ];
+
+        /* The live vote share, while people are still voting. The
+           percentage sits to the right of the option and a bar
+           fills along the bottom edge; both are neutral gold,
+           because nothing here knows which option is right. */
+        if (!reveal && state.votes) {
+          children.push(UI.el('span.stage__option-pct', {
+            dataset: { pct: opt.id }, text: ''
+          }));
+          children.push(UI.el('span.stage__option-bar', {}, [
+            UI.el('span.stage__option-bar-fill', { dataset: { bar: opt.id } })
+          ]));
+        }
+
+        return UI.el('div.stage__option' + cls, { dataset: { opt: opt.id } }, children);
       })
     );
+  }
+
+  /* Update the vote bars in place.
+     ---------------------------------------------------------
+     Called on every state push while a question is open. It must
+     not rebuild the scene: that would restart the entry
+     animation and, on a media question, retrigger the clip —
+     several times a second as answers arrive. */
+  function updateVotes() {
+    if (!state || !state.votes) return;
+    var total = state.votes.total || 0;
+
+    state.votes.rows.forEach(function (row) {
+      var pct = UI.$('[data-pct="' + row.id + '"]');
+      var bar = UI.$('[data-bar="' + row.id + '"]');
+      /* Percentages of nothing are noise, so until the first
+         answer lands the row shows nothing at all. */
+      var share = total ? Math.round(row.share * 100) : 0;
+      if (pct) pct.textContent = total ? share + '%' : '';
+      if (bar) bar.style.transform = 'scaleX(' + (total ? row.share : 0).toFixed(3) + ')';
+    });
+
+    var tally = UI.$('#vote-total');
+    if (tally) {
+      tally.textContent = total
+        ? total + ' of ' + (state.counts ? state.counts.teams : total) + ' in'
+        : '';
+    }
   }
 
   function sceneReveal() {
