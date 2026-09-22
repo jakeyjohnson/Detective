@@ -172,6 +172,28 @@ check('numeric without a tolerance awards the closest in the field', () => {
   eq(Model.scoreAnswer(q, { value: 150 }, {}, ctx).correct, false, 'far off loses');
 });
 
+check('closest-number marking depends on the WHOLE field being present', () => {
+  /* This is why the host refetches the answers from the store
+     before marking instead of trusting its cached copy. For every
+     other type a missing answer only costs that one team. Here it
+     silently moves the points to someone else: with only the
+     far-off guess present, the far-off guess IS the closest. */
+  const q = Model.newQuestion('numeric');
+  q.points = 10;
+  q.numeric = { value: 221, tolerance: null };
+
+  const far = { value: 200 };
+  const near = { value: 219 };
+
+  const wholeField = { allAnswers: [far, near] };
+  eq(Model.scoreAnswer(q, far, {}, wholeField).correct, false, 'with both answers in, the far guess loses');
+  eq(Model.scoreAnswer(q, near, {}, wholeField).correct, true, 'and the near guess wins');
+
+  const missingOne = { allAnswers: [far] };
+  eq(Model.scoreAnswer(q, far, {}, missingOne).correct, true,
+    'but alone in the field it would win — so the field must be complete before marking');
+});
+
 check('equally close numeric guesses both win', () => {
   const q = Model.newQuestion('numeric');
   q.points = 10;

@@ -1,5 +1,5 @@
 /* =========================================================
-   Configuration.
+   Configuration — Play Detective.
 
    The app runs with this file completely untouched — it just
    runs in LOCAL mode: one machine, the host window driving a
@@ -14,8 +14,17 @@
 window.DETECTIVE_CONFIG = {
 
   /* --- Show identity, shown on the projection and the join page --- */
-  showName: 'So You Want To Be A Detective',
-  showTagline: 'Five rounds. One verdict.',
+  showName: 'Play Detective',
+  showTagline: 'An Interactive Show',
+
+  /* Drop the real logo in here and the join page and the lobby
+     screen use it in place of the built-in fingerprint mark.
+     Put the file in assets/img/ and point at it, e.g.
+     'assets/img/logo.png'. A transparent PNG or an SVG is best —
+     it sits on the near-black ground, so a logo with a white box
+     baked into it will show that box. Leave empty to use the
+     fingerprint. */
+  logoUrl: '',
 
   /* --- Supabase (optional) ---
      Project Settings > API in the Supabase dashboard. The anon

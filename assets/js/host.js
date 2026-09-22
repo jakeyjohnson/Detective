@@ -232,6 +232,18 @@
       show.answers = answers;
       renderNow();
       renderSide();
+
+      /* An answer that lands after the host moved past the
+         question still needs marking, or that team is scored zero
+         for something they answered in time. Guarded on there
+         actually being something unmarked, so marking cannot
+         trigger itself in a loop. */
+      if ((show.phase === P.CLOSED || show.phase === P.REVEAL ||
+           show.phase === P.BOARD) && hasUnmarkedAnswers()) {
+        markCurrent().then(push);
+        return;
+      }
+
       /* The "12 of 20 answered" counter lives in the pushed state
          so the projection can show it too. */
       if (show.phase === P.QUESTION) pushThrottled();
@@ -448,26 +460,59 @@
     return Model.runOrder(show.quiz)[show.cursor] || null;
   }
 
+  /* Mark the question the show is on.
+
+     Reads the answers back from the store first rather than
+     trusting this page's cached copy. That matters most for
+     "closest number", where the marking is a comparison ACROSS
+     the field: an answer still in flight when the host hits
+     reveal would be left out of that comparison, and the points
+     would silently go to the wrong team — not merely be missing
+     for one. Every other type marks each answer independently,
+     so a late arrival there only affects its own team, but the
+     refetch is cheap and makes all of them right. */
   function markCurrent() {
     var entry = currentEntry();
     if (!entry) return Promise.resolve();
 
-    var marks = Show.markQuestion(entry.question, show.answers, show.quiz.settings);
-    if (!marks.length) return Promise.resolve();
+    return Store.session.answers(show.code)
+      .catch(function () {
+        /* Offline or refused: fall back to what we have rather
+           than refusing to mark at all mid-show. */
+        return show.answers;
+      })
+      .then(function (rows) {
+        show.answers = rows;
 
-    /* Apply locally first so the host's board is right straight
-       away rather than after the round trip. */
-    var byId = {};
-    marks.forEach(function (m) { byId[m.id] = m; });
-    show.answers.forEach(function (a) {
-      if (byId[a.id]) {
-        a.points = byId[a.id].points;
-        a.correct = byId[a.id].correct;
-      }
-    });
+        var marks = Show.markQuestion(entry.question, rows, show.quiz.settings);
+        if (!marks.length) return;
 
-    return Store.session.markAnswers(show.code, marks).catch(function (err) {
-      UI.toast('Could not save the marks: ' + (err.message || 'connection lost'), 'error');
+        /* Apply locally too, so the host's board is right straight
+           away rather than after the round trip. */
+        var byId = {};
+        marks.forEach(function (m) { byId[m.id] = m; });
+        show.answers.forEach(function (a) {
+          if (byId[a.id]) {
+            a.points = byId[a.id].points;
+            a.correct = byId[a.id].correct;
+          }
+        });
+
+        return Store.session.markAnswers(show.code, marks).catch(function (err) {
+          UI.toast('Could not save the marks: ' + (err.message || 'connection lost'), 'error');
+        });
+      });
+  }
+
+  /* True when an answer to the current question has come in that
+     nobody has marked yet. Used to catch answers that land after
+     the host has already moved to the reveal — a phone on bad
+     wifi, or simply a submission that raced the reveal. */
+  function hasUnmarkedAnswers() {
+    var entry = currentEntry();
+    if (!entry || !Model.isAutoScored(entry.question)) return false;
+    return show.answers.some(function (a) {
+      return a.questionId === entry.question.id && a.correct == null;
     });
   }
 

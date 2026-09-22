@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>So You Want To Be A Detective</title>
-<meta name="description" content="Join the game, or open the control room to run it.">
+<title>Play Detective — An Interactive Show</title>
+<meta name="description" content="Play Detective — an interactive show. Join the game, or open the control room to run it.">
 <meta name="robots" content="noindex">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23080A0E'/%3E%3Ccircle cx='14' cy='13' r='7' fill='none' stroke='%23E0A93B' stroke-width='3'/%3E%3Cpath d='M19 18 L26 26' stroke='%23E0A93B' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="icon" href="assets/img/favicon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Inter:wght@400;500;700&family=Courier+Prime:wght@400;700&display=swap">
@@ -18,7 +18,7 @@
 <header class="topbar">
   <a class="brand" href="index.html">
     <span class="brand__mark" aria-hidden="true"></span>
-    <span>Detective</span>
+    <span>Play Detective</span>
   </a>
   <span class="spacer"></span>
   <nav class="topbar__nav">
@@ -30,8 +30,16 @@
 <main class="hero">
   <div class="hero__inner">
 
-    <p class="label label--accent" id="tagline">Five rounds. One verdict.</p>
-    <h1 class="hero__title">So You Want To Be A <em>Detective</em></h1>
+    <div class="marquee" style="margin-bottom: var(--sp-6)">
+      <div class="marquee__inner">
+        <div class="plate">
+          <span class="brand__mark brand__mark--lg" id="hero-mark" aria-hidden="true"
+                style="margin: 0 auto var(--sp-3); color: var(--text-on-plate)"></span>
+          <h1 class="hero__title" id="hero-title" style="color: var(--text-on-plate); margin-bottom: var(--sp-2)">Play Detective</h1>
+          <p class="label" id="tagline">An Interactive Show</p>
+        </div>
+      </div>
+    </div>
     <p class="hero__sub">Enter the code on the screen to join the game.</p>
 
     <!-- Join form. Autofocused and submittable with Enter, because
@@ -107,6 +115,22 @@
   var joinBtn = UI.$('#join-btn');
 
   if (cfg.showTagline) UI.$('#tagline').textContent = cfg.showTagline;
+  if (cfg.showName) UI.$('#hero-title').textContent = cfg.showName;
+
+  /* A real logo replaces both the fingerprint and the wordmark —
+     the logo already contains the name, so keeping the <h1> would
+     print it twice. The name stays in the page title and is read
+     out to screen readers from the img alt. */
+  if (cfg.logoUrl) {
+    var mark = UI.$('#hero-mark');
+    var logo = UI.el('img', {
+      src: cfg.logoUrl,
+      alt: cfg.showName || 'Play Detective',
+      style: 'max-width: 100%; max-height: 18rem; margin: 0 auto;'
+    });
+    mark.parentNode.replaceChild(logo, mark);
+    UI.$('#hero-title').classList.add('is-hidden');
+  }
 
   /* A code can arrive in the URL from a QR code on the table, in
      which case the player only has to name their team. */

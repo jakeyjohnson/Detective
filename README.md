@@ -1,4 +1,6 @@
-# So You Want To Be A Detective
+# Play Detective
+
+*An Interactive Show.*
 
 A live gameshow quiz platform. Write the quiz, put it on a projector,
 run it from a private control room, let the room answer on their phones,
@@ -46,6 +48,38 @@ To have the room answer on **their own phones**, do the Supabase setup below.
 `build.html` and `host.html` sit behind a gate. The other four do not, on
 purpose: the projector, the join page and the leaderboard all need to be
 openable by whoever is standing in front of them.
+
+---
+
+## Branding
+
+The look is taken from the show's logo: antique gold on near-black, a ring
+of lit marquee bulbs, and a cream plate for the moments the room is meant to
+look up. Every colour, size and duration lives in `assets/css/tokens.css` —
+nothing below it hardcodes a value, so the whole system re-skins from that
+one file.
+
+The marquee ring is CSS, not an image: four repeating radial gradients on one
+pseudo-element, one per edge, so a frame of any size gets evenly spaced bulbs.
+The fingerprint is `assets/img/fingerprint.svg`, loaded as a CSS mask so it
+takes its colour from context — gold on black in the topbar, black on cream
+on a plate, from one file.
+
+**To use the real logo**, put the file in `assets/img/` and set `logoUrl` in
+`assets/js/config.js`:
+
+```js
+logoUrl: 'assets/img/logo.png',
+```
+
+The join page and the lobby screen then show it in place of the built-in
+fingerprint and wordmark. Use a transparent PNG or an SVG — it sits on the
+near-black ground, so a logo with a white box baked in will show that box.
+
+The cream plate is rationed deliberately. It is the brightest thing the system
+can put on a screen, so it marks the round card and the winner — beats a few
+seconds long — and never a whole page. A projector in a dark room would blow
+out a full cream screen, and the questions themselves stay light-on-dark.
 
 ---
 
@@ -219,6 +253,14 @@ Measured on the test rig, a state change reaches a phone in well under
 auto-marked question, a phone can show the reveal before its own verdict
 arrives — it says "Checking your answer…" rather than guessing.
 
+**Late answers still get marked.** The host reads the answers back from the
+database before marking rather than trusting its own cached copy, and re-marks
+if one lands after the reveal. This matters most for **closest number**, where
+the marking is a comparison across the whole field: an answer still in flight
+would otherwise be left out of that comparison and the points would go to the
+wrong team, not merely be missing for one. `test/engine.test.js` pins that
+down explicitly so the refetch does not get optimised away later.
+
 ### Sound on the projection screen
 
 Browsers block audio until the page has been clicked. The projection screen
@@ -234,7 +276,7 @@ again. Worth doing during setup rather than discovering it on question one.
 node test/engine.test.js
 ```
 
-46 checks over the parts that quietly ruin a live show if they are wrong:
+47 checks over the parts that quietly ruin a live show if they are wrong:
 scoring for every input mode, the redaction guarantees, tie handling,
 phase navigation, validation, clock-skew correction and the results export.
 They run in plain node with no browser and no network.
@@ -262,6 +304,9 @@ assets/css/app.css      Components for the operator-facing pages
 assets/css/present.css  The projection screen, which is a different
                           medium: read from 10 metres, never scrolls,
                           has its own type scale
+
+assets/img/fingerprint.svg  The brand mark, used as a CSS mask
+assets/img/favicon.svg  The same mark with its colours baked in
 
 assets/js/config.js     The only file you need to edit
 assets/js/quiz-model.js Question types, answer matching, scoring,

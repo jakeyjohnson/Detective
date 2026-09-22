@@ -1,5 +1,5 @@
 /* =========================================================
-   So You Want To Be A Detective — application styles.
+   Play Detective — application styles.
    Every value references tokens.css. No hardcoded colour,
    size, spacing or radius below this line.
 
@@ -117,27 +117,23 @@ img, video{ max-width: 100%; display: block; }
 }
 .brand:hover{ text-decoration: none; color: var(--text-accent); }
 
-/* The magnifying-glass mark, drawn in CSS: a brass ring plus a
-   rotated handle. Cheap, sharp at any size, no asset to ship. */
+/* The logo's fingerprint. Loaded as a mask rather than an <img>
+   so it takes its colour from CSS and can sit gold on black in
+   the topbar and black on cream on a plate, from one file. */
 .brand__mark{
-  position: relative;
-  width: 1.25em; height: 1.25em;
+  /* A masked element has no intrinsic content, so it needs an
+     explicit box AND a block display — left inline it collapses
+     to nothing, which is exactly what it did. */
+  display: inline-block;
   flex: 0 0 auto;
+  width: 1em; height: 1.3em;       /* the file's 92:120 ratio */
+  background: currentColor;
+  color: var(--accent);
+  -webkit-mask: url('../img/fingerprint.svg') no-repeat center / contain;
+  mask: url('../img/fingerprint.svg') no-repeat center / contain;
 }
-.brand__mark::before{
-  content: ''; position: absolute;
-  inset: 0 0.3em 0.3em 0;
-  border: 2px solid var(--accent);
-  border-radius: 50%;
-}
-.brand__mark::after{
-  content: ''; position: absolute;
-  right: 0.12em; bottom: 0.04em;
-  width: 2px; height: 0.45em;
-  background: var(--accent);
-  transform: rotate(-45deg);
-  transform-origin: bottom;
-}
+/* Block, so `margin: 0 auto` actually centres it. */
+.brand__mark--lg{ display: block; width: 2.6em; height: 3.38em; }
 
 .topbar__nav{ display: flex; align-items: center; gap: var(--sp-1); }
 
@@ -254,11 +250,18 @@ img, video{ max-width: 100%; display: block; }
 }
 
 .btn--primary{
-  background: var(--accent);
+  /* A top-lit gradient plus a darker edge, so the primary action
+     reads as the logo's turned gold rather than a flat swatch. */
+  background: linear-gradient(180deg, var(--accent-hover) 0%, var(--accent) 55%, var(--accent-active) 100%);
+  border-color: var(--accent-active);
+  color: var(--text-inverse);
+  text-shadow: 0 1px 0 rgba(255,233,176,0.4);
+}
+.btn--primary:hover{
+  background: linear-gradient(180deg, var(--accent-hover) 0%, var(--accent-hover) 55%, var(--accent) 100%);
   border-color: var(--accent);
   color: var(--text-inverse);
 }
-.btn--primary:hover{ background: var(--accent-hover); border-color: var(--accent-hover); color: var(--text-inverse); }
 .btn--primary:active{ background: var(--accent-active); border-color: var(--accent-active); }
 
 .btn--ghost{ background: transparent; }
@@ -440,11 +443,11 @@ img, video{ max-width: 100%; display: block; }
 }
 .hero__inner{ width: 100%; max-width: var(--w-narrow); text-align: center; }
 .hero__title{
-  font-size: clamp(2rem, 7vw, 4.25rem);
+  font-size: clamp(1.75rem, 6vw, 3.75rem);
   margin-bottom: var(--sp-4);
+  letter-spacing: 0.01em;   /* the wordmark is set slightly open */
+  text-wrap: balance;
 }
-/* The show's title is a question, so the last word carries the
-   brass. Not decoration — it's the read order cue. */
 .hero__title em{ font-style: normal; color: var(--accent); }
 .hero__sub{ color: var(--text-secondary); margin-bottom: var(--sp-7); }
 
@@ -849,7 +852,70 @@ img, video{ max-width: 100%; display: block; }
 .board__delta--none{ color: var(--text-faint); }
 
 /* ---------------------------------------------------------
-   15. Media in question editors / host preview
+   15. Marquee frame and cream plate
+   ---------------------------------------------------------
+   The two signatures of the logo: a ring of lit bulbs, and the
+   cream plate the wordmark sits on.
+
+   The bulbs are four repeating radial gradients on one
+   pseudo-element — one per edge — so a frame of any size gets
+   evenly spaced bulbs with no markup and no images. The glow is
+   a drop-shadow filter on that same element, which means it
+   glows the bulbs only and not the content inside.
+   --------------------------------------------------------- */
+.marquee{
+  position: relative;
+  padding: var(--sp-5);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-lg);
+  background: var(--bg-panel);
+}
+
+.marquee::before{
+  content: '';
+  position: absolute;
+  inset: 7px;
+  pointer-events: none;
+  border-radius: var(--radius-sm);
+  background-image:
+    radial-gradient(circle, var(--bulb) 0 26%, transparent 29%),
+    radial-gradient(circle, var(--bulb) 0 26%, transparent 29%),
+    radial-gradient(circle, var(--bulb) 0 26%, transparent 29%),
+    radial-gradient(circle, var(--bulb) 0 26%, transparent 29%);
+  background-size: 22px 10px, 22px 10px, 10px 22px, 10px 22px;
+  background-position: left top, left bottom, left top, right top;
+  background-repeat: repeat-x, repeat-x, repeat-y, repeat-y;
+  filter: drop-shadow(0 0 4px rgba(255,233,176,0.6));
+}
+
+/* An inner hairline, which is what makes the logo's ring read as
+   turned metal rather than a plain stroke. */
+.marquee::after{
+  content: '';
+  position: absolute;
+  inset: 16px;
+  pointer-events: none;
+  border: 1px solid var(--accent-shadow);
+  border-radius: var(--radius-sm);
+}
+
+.marquee__inner{ position: relative; z-index: 1; padding: var(--sp-4); }
+
+/* The cream plate. Deliberately rationed: it is the brightest
+   thing the system can put on a screen, so it marks the moments
+   the room is meant to look up — never a whole page. */
+.plate{
+  background: var(--bg-plate);
+  color: var(--text-on-plate);
+  border-radius: var(--radius-sm);
+  padding: var(--sp-5);
+  text-align: center;
+}
+.plate h1, .plate h2, .plate h3{ color: var(--text-on-plate); }
+.plate .label{ color: rgba(21,18,10,0.6); }
+
+/* ---------------------------------------------------------
+   16. Media in question editors / host preview
    --------------------------------------------------------- */
 .media-frame{
   position: relative;

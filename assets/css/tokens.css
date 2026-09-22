@@ -1,14 +1,19 @@
 /* =========================================================
-   So You Want To Be A Detective — Design Tokens
+   Play Detective — Design Tokens
 
-   Aesthetic philosophy: "Case File Noir". A gameshow staged in
-   an interrogation room. Deep ink ground, one pool of brass
-   lamplight as the only accent, typewriter mono for the
-   procedural furniture (case numbers, labels, timers) and tall
-   condensed display type for the thing the room is looking at.
+   Taken from the show's own logo: antique gold filigree and a
+   lit marquee ring on near-black, around a cream plate carrying
+   the wordmark and the fingerprint. So the system is a theatre
+   front-of-house, not an interrogation room — gold as the single
+   accent, warm bulb light rather than a cold lamp, and a cream
+   plate reserved for the moments the room is meant to look at.
+
+   Typewriter mono still carries the procedural furniture (case
+   numbers, labels, timers) and tall condensed display type
+   carries the thing on screen, matching the wordmark.
 
    Three rules this system exists to enforce:
-   1. Brass is the ONLY accent. Green/red appear exclusively at
+   1. Gold is the ONLY accent. Green/red appear exclusively at
       the moment of reveal — never as decoration. Colour means
       something here.
    2. Projection is a different medium to a laptop. Every size
@@ -21,20 +26,32 @@
 
 :root{
 
-  /* ---------- Raw palette ---------- */
-  --raw-ink-900:     #080A0E;   /* page ground — near-black, faintly blue */
-  --raw-ink-850:     #0C0F15;
-  --raw-ink-800:     #12161E;   /* panels */
-  --raw-ink-700:     #1A1F29;   /* inputs, nested surfaces */
-  --raw-ink-600:     #242A36;   /* raised / hover */
+  /* ---------- Raw palette — sampled from the logo ---------- */
+  --raw-ink-900:     #07080B;   /* page ground — the logo's near-black */
+  --raw-ink-850:     #0B0D12;
+  --raw-ink-800:     #111419;   /* panels */
+  --raw-ink-700:     #191D24;   /* inputs, nested surfaces */
+  --raw-ink-600:     #232830;   /* raised / hover */
 
-  --raw-brass:       #E0A93B;   /* the interrogation lamp */
-  --raw-brass-hi:    #F2C25C;
-  --raw-brass-lo:    #B5842A;
+  /* Antique gold, three tones. The logo's filigree reads as gold
+     precisely because it carries a highlight and a shadow, not
+     one flat yellow — so the system keeps all three and uses them
+     for lit edges and depth. */
+  --raw-gold:        #D0A64C;   /* the filigree */
+  --raw-gold-hi:     #EBD08A;   /* its lit edge */
+  --raw-gold-lo:     #8E6F28;   /* its shadow */
 
-  --raw-paper:       #F2EDE1;   /* case-file cream, not pure white */
-  --raw-paper-dim:   #A8A49A;
-  --raw-paper-faint: #6E6B64;
+  /* The marquee bulbs. Warmer and brighter than the gold — they
+     are a light source, not a surface. */
+  --raw-bulb:        #FFE9B0;
+
+  /* The cream plate the wordmark sits on. */
+  --raw-cream:       #EFE6CE;
+  --raw-cream-ink:   #15120A;   /* text ON the plate */
+
+  --raw-paper:       #F1EADA;   /* body text — the cream, lightened */
+  --raw-paper-dim:   #A9A296;
+  --raw-paper-faint: #6F6A5F;
 
   --raw-jade:        #3FA97A;   /* correct — reveal only */
   --raw-oxblood:     #C2413F;   /* incorrect — reveal only */
@@ -45,35 +62,43 @@
   --bg-panel:      var(--raw-ink-800);
   --bg-inset:      var(--raw-ink-700);
   --bg-raised:     var(--raw-ink-600);
-  --bg-overlay:    rgba(8,10,14,0.92);
+  --bg-overlay:    rgba(7,8,11,0.92);
 
-  /* The lamp. Used behind the projected question so the room's
-     eye lands centre-screen. Deliberately a token, not an
-     inline gradient, so it stays identical on every surface. */
+  /* Front-of-house glow: the warm spill a marquee throws onto the
+     wall behind it. Used behind the projected question so the
+     room's eye lands centre-screen. A token, not an inline
+     gradient, so it is identical on every surface. */
   --bg-lamp: radial-gradient(
     ellipse 120% 85% at 50% -10%,
-    rgba(224,169,59,0.16) 0%,
-    rgba(224,169,59,0.05) 38%,
+    rgba(208,166,76,0.17) 0%,
+    rgba(208,166,76,0.055) 38%,
     transparent 72%
   );
+
+  /* The cream plate. Used sparingly and never full-screen — a
+     projector in a dark room would blow it out. */
+  --bg-plate:      var(--raw-cream);
+  --text-on-plate: var(--raw-cream-ink);
 
   /* ---------- Text ---------- */
   --text-primary:   var(--raw-paper);
   --text-secondary: var(--raw-paper-dim);
   --text-faint:     var(--raw-paper-faint);
   --text-inverse:   var(--raw-ink-900);
-  --text-accent:    var(--raw-brass);
+  --text-accent:    var(--raw-gold);
 
   /* ---------- Lines ---------- */
-  --line-primary:   rgba(242,237,225,0.14);
-  --line-secondary: rgba(242,237,225,0.07);
-  --line-accent:    var(--raw-brass);
-  --line-focus:     var(--raw-brass-hi);
+  --line-primary:   rgba(241,234,218,0.14);
+  --line-secondary: rgba(241,234,218,0.07);
+  --line-accent:    var(--raw-gold);
+  --line-focus:     var(--raw-gold-hi);
 
   /* ---------- Accents & states ---------- */
-  --accent:         var(--raw-brass);
-  --accent-hover:   var(--raw-brass-hi);
-  --accent-active:  var(--raw-brass-lo);
+  --accent:         var(--raw-gold);
+  --accent-hover:   var(--raw-gold-hi);
+  --accent-active:  var(--raw-gold-lo);
+  --accent-shadow:  var(--raw-gold-lo);
+  --bulb:           var(--raw-bulb);
   --state-correct:  var(--raw-jade);
   --state-wrong:    var(--raw-oxblood);
   --state-live:     var(--raw-signal);
@@ -82,7 +107,7 @@
      projected text stays the brightest thing on screen */
   --wash-correct:   rgba(63,169,122,0.18);
   --wash-wrong:     rgba(194,65,63,0.15);
-  --wash-accent:    rgba(224,169,59,0.12);
+  --wash-accent:    rgba(208,166,76,0.13);
   --wash-live:      rgba(79,185,204,0.14);
 
   /* ---------- Type families ---------- */
@@ -151,7 +176,10 @@
   --shadow-sm: 0 1px 0 rgba(0,0,0,0.5);
   --shadow-md: 0 4px 14px rgba(0,0,0,0.55);
   --shadow-lg: 0 18px 48px rgba(0,0,0,0.65);
-  --shadow-lamp: 0 0 0 1px rgba(224,169,59,0.35), 0 0 32px rgba(224,169,59,0.14);
+  --shadow-lamp: 0 0 0 1px rgba(208,166,76,0.38), 0 0 32px rgba(208,166,76,0.15);
+  /* One lit bulb. Composed as a token because the marquee frame
+     repeats it dozens of times and they must all match. */
+  --shadow-bulb: 0 0 6px 1px rgba(255,233,176,0.75), 0 0 14px 3px rgba(208,166,76,0.35);
 
   /* ---------- Motion ----------
      Gameshow pacing: state changes need to land, not glide.

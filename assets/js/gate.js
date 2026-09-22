@@ -100,9 +100,9 @@
   function screen(children) {
     var wrap = UI.el('section.hero', { id: 'gate-screen' }, [
       UI.el('div.hero__inner', {}, [
-        UI.el('span.brand__mark', {
+        UI.el('span.brand__mark.brand__mark--lg', {
           'aria-hidden': 'true',
-          style: 'margin: 0 auto var(--sp-5); width: 3rem; height: 3rem;'
+          style: 'margin: 0 auto var(--sp-5);'
         })
       ].concat(children))
     ]);

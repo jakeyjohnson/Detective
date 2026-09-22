@@ -216,9 +216,19 @@
       UI.el('p.stage__qmeta', { text: 'Join the game' })
     ];
 
+    /* The real logo if one is configured, otherwise the built-in
+       fingerprint. This is the one screen with room for it. */
+    children.unshift(cfg.logoUrl
+      ? UI.el('img.stage__logo', { src: cfg.logoUrl, alt: '' })
+      : UI.el('div.stage__mark', { 'aria-hidden': 'true' }));
+
     if (Store.isCloud) {
       children.push(UI.el('p.stage__joinurl', { text: joinTarget }));
-      children.push(UI.el('p.stage__code', { text: state.code }));
+      children.push(UI.el('div.marquee.marquee--stage', { style: 'width: auto' }, [
+        UI.el('div.marquee__inner', {}, [
+          UI.el('p.stage__code', { text: state.code })
+        ])
+      ]));
     } else {
       /* Local mode has nothing for the room to type, so the
          projector shows the show title instead of a code nobody
@@ -253,15 +263,31 @@
        otherwise print above a heading that says the same thing. */
     var showNumber = title.replace(/\s+/g, ' ').toLowerCase() !== number.toLowerCase();
 
+    /* The round card is one of the two moments the show puts the
+       cream plate up — it is a beat between questions, short
+       enough that the brightness is a punctuation mark rather
+       than something the room sits in front of. */
     return panel([
-      showNumber ? UI.el('p.stage__qmeta', {}, [UI.el('strong', { text: number })]) : null,
-      UI.el('h1.stage__question', { text: title }),
-      state.round && state.round.description
-        ? UI.el('p.stage__explain', { text: state.round.description })
-        : null,
-      UI.el('p.stage__qmeta', {
-        text: state.round ? UI.plural(state.round.sizeOfRound, 'question') : ''
-      })
+      marqueePlate([
+        showNumber ? UI.el('p.stage__qmeta', {}, [UI.el('strong', { text: number })]) : null,
+        UI.el('h1.stage__question', { text: title }),
+        state.round && state.round.description
+          ? UI.el('p.stage__explain', { text: state.round.description })
+          : null,
+        UI.el('p.stage__qmeta', {
+          text: state.round ? UI.plural(state.round.sizeOfRound, 'question') : ''
+        })
+      ])
+    ]);
+  }
+
+  /* A bulb-lit gold frame around the cream plate, straight off
+     the logo. Used for the round card and the winner. */
+  function marqueePlate(children) {
+    return UI.el('div.marquee.marquee--stage', {}, [
+      UI.el('div.marquee__inner', {}, [
+        UI.el('div.plate.plate--stage', {}, children)
+      ])
     ]);
   }
 
@@ -405,9 +431,11 @@
     if (!state.winner) return sceneHold('Show over');
     var board = state.board || [];
     return panel([
-      UI.el('p.stage__qmeta', { text: 'The case is closed' }),
-      UI.el('p.stage__winner-name', { text: state.winner.name }),
-      UI.el('p.stage__winner-score', { text: state.winner.score + ' points' }),
+      marqueePlate([
+        UI.el('p.stage__qmeta', { text: 'The case is closed' }),
+        UI.el('p.stage__winner-name', { text: state.winner.name }),
+        UI.el('p.stage__winner-score', { text: state.winner.score + ' points' })
+      ]),
       board.length > 1
         ? UI.el('div.stage__board', { style: 'margin-top: var(--sp-6)' },
             board.slice(1, 4).map(function (row) {

@@ -1,5 +1,5 @@
 /* =========================================================
-   Projection screen.
+   Projection screen — Play Detective.
 
    Designed for a room, not a reader. The constraints that
    shape everything here:
@@ -86,7 +86,12 @@ body.stage{
    Question scene
    --------------------------------------------------------- */
 .stage__qmeta{
-  display: flex; align-items: center; gap: var(--sp-4);
+  /* Centred, because on the cream plate this is a block-level
+     flex container filling the plate's width — left to default
+     it pushed the round label and the question count to the
+     left of a centred heading. */
+  display: flex; align-items: center; justify-content: center; gap: var(--sp-4);
+  flex-wrap: wrap;
   font-family: var(--font-mono);
   font-size: var(--fs-proj-label);
   letter-spacing: var(--ls-widest);
@@ -211,7 +216,7 @@ body.stage{
   letter-spacing: 0.12em;
   line-height: 1;
   color: var(--accent);
-  text-shadow: 0 0 40px rgba(224,169,59,0.25);
+  text-shadow: 0 0 40px rgba(208,166,76,0.28);
 }
 .stage__joinurl{
   font-family: var(--font-mono);
@@ -243,6 +248,26 @@ body.stage{
   animation: scene-in var(--dur-base) var(--ease-out);
 }
 .stage__roster.is-crowded .stage__roster-item{ font-size: var(--fs-proj-label); padding: var(--sp-1) var(--sp-3); }
+
+/* A real logo on the lobby screen. Capped by height in viewport
+   units so a tall logo cannot push the join code off the screen,
+   which is the one thing the lobby has to show. */
+.stage__logo{
+  max-height: clamp(6rem, 34vh, 22rem);
+  max-width: min(100%, 44rem);
+  width: auto;
+  margin: 0 auto;
+}
+
+/* The fingerprint, at the size the lobby screen can carry it. */
+.stage__mark{
+  width: clamp(3rem, 6vw, 7.5rem);
+  aspect-ratio: 92 / 120;
+  background: currentColor;
+  color: var(--accent);
+  -webkit-mask: url('../img/fingerprint.svg') no-repeat center / contain;
+  mask: url('../img/fingerprint.svg') no-repeat center / contain;
+}
 
 /* ---------------------------------------------------------
    Media scene
@@ -413,6 +438,36 @@ body.stage{
 }
 
 /* ---------------------------------------------------------
+   Marquee frame at projection scale
+   ---------------------------------------------------------
+   The frame from app.css, with the bulbs and insets scaled for
+   a screen being read from across a room. Bulb spacing is in
+   viewport units so a 1080p projector and a 4K TV both get a
+   ring that looks like the logo rather than a dotted line.
+   --------------------------------------------------------- */
+.marquee--stage{
+  border-width: 3px;
+  padding: clamp(var(--sp-4), 2.2vh, var(--sp-7));
+  background: transparent;
+  width: 100%;
+}
+.marquee--stage::before{
+  inset: clamp(9px, 1.1vh, 16px);
+  --bulb-step: clamp(26px, 2.6vw, 48px);
+  background-size:
+    var(--bulb-step) clamp(11px, 1.1vw, 18px),
+    var(--bulb-step) clamp(11px, 1.1vw, 18px),
+    clamp(11px, 1.1vw, 18px) var(--bulb-step),
+    clamp(11px, 1.1vw, 18px) var(--bulb-step);
+  filter: drop-shadow(0 0 7px rgba(255,233,176,0.65));
+}
+.marquee--stage::after{ inset: clamp(20px, 2.4vh, 34px); }
+
+.plate--stage{
+  padding: clamp(var(--sp-4), 3vh, var(--sp-7)) clamp(var(--sp-5), 4vw, var(--sp-8));
+}
+
+/* ---------------------------------------------------------
    Winner scene
    --------------------------------------------------------- */
 /* The winner's score. Brass, not the reveal green — in this
@@ -430,15 +485,26 @@ body.stage{
 
 .stage__winner-name{
   font-family: var(--font-display);
-  font-size: clamp(2.5rem, 9vw, 12rem);
+  font-size: clamp(2.5rem, 8vw, 10rem);
   font-weight: var(--fw-bold);
   text-transform: uppercase;
   letter-spacing: var(--ls-tight);
   line-height: 0.95;
   color: var(--accent);
-  text-shadow: 0 0 60px rgba(224,169,59,0.3);
+  text-shadow: 0 0 60px rgba(208,166,76,0.3);
   text-wrap: balance;
 }
+/* On the cream plate the gold disappears, so the plate's own
+   copy of the winner reverts to the plate ink. */
+.plate .stage__winner-name{
+  color: var(--text-on-plate);
+  text-shadow: none;
+}
+.plate .stage__winner-score{ color: rgba(21,18,10,0.72); }
+.plate .stage__question{ color: var(--text-on-plate); }
+.plate .stage__explain{ color: rgba(21,18,10,0.7); }
+.plate .stage__qmeta{ color: rgba(21,18,10,0.55); }
+.plate .stage__qmeta strong{ color: var(--accent-active); }
 
 /* ---------------------------------------------------------
    Waiting / holding scene
