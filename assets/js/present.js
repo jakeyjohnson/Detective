@@ -31,7 +31,8 @@
 
   var state = null;
   var receivedAt = 0;
-  var lastSignature = '';     // what's rendered, so we only rebuild on real change
+  var lastSignature = '';     // which scene is rendered
+  var lastContentSig = '';    // and what data it was drawn from
   var mediaEl = null;
   var audioBlocked = false;
 
@@ -110,20 +111,34 @@
       state.mediaState
     ].join('|');
 
+    /* A second signature over the DATA a scene draws, so that a
+       scene is rebuilt when its content really changed and not
+       merely because another push arrived. Every rebuild restarts
+       the scene's fade-in; with a room of people signing up at
+       once that turned the lobby into a strobe. */
+    var contentSig = (state.board || []).map(function (r) {
+      return r.name + ':' + r.score;
+    }).join('|') + '#' + (state.boardTruncated || 0);
+
     if (sig !== lastSignature) {
       lastSignature = sig;
+      lastContentSig = contentSig;
       renderScene();
     } else {
-      /* Same scene, fresher numbers: update in place. The scenes
-         built FROM the standings are the exception — the lobby
-         roster grows as teams join, and the board moves as
-         answers are marked, neither of which changes the
-         signature. */
+      /* Same scene, fresher numbers: update in place. */
       updateCounts();
       updateVotes();
-      if (state.phase === 'lobby' || state.phase === 'board' ||
-          state.phase === 'winner' || state.phase === 'ended') {
-        renderScene();
+
+      if (contentSig !== lastContentSig) {
+        lastContentSig = contentSig;
+        if (state.phase === 'lobby') {
+          /* The roster is patched rather than rebuilt, so only the
+             name that just arrived animates in. */
+          updateRoster();
+        } else if (state.phase === 'board' || state.phase === 'winner' ||
+                   state.phase === 'ended') {
+          renderScene();
+        }
       }
     }
 
@@ -161,7 +176,13 @@
 
   function answeredText() {
     if (!state || !state.counts) return '';
-    if (state.phase !== 'question' || !state.accepting) return UI.plural(state.counts.teams, 'team');
+    if (state.phase !== 'question' || !state.accepting) {
+      return UI.plural(state.counts.teams, 'player');
+    }
+    /* When the live split is on screen it already carries the
+       running tally, centre-screen and far more legibly. Printing
+       it in the footer as well is just the same number twice. */
+    if (state.votes) return UI.plural(state.counts.teams, 'player');
     return state.counts.answered + ' of ' + state.counts.teams + ' in';
   }
 
@@ -200,10 +221,12 @@
 
     UI.replace(els.main, [scene]);
 
-    /* Seed the bars from the state the scene was built with, so a
-       screen that joins mid-question shows the split already at
-       its current level rather than at zero. */
+    /* Seed from the state the scene was built with, so a screen
+       that joins mid-question shows the split already at its
+       current level rather than at zero, and a lobby opened after
+       people signed up shows them. */
     updateVotes();
+    updateRoster();
   }
 
   function panel(children, wide) {
@@ -278,28 +301,66 @@
         : null
     ]));
 
+    children.push(UI.el('p.stage__explain', {
+      id: 'roster-waiting', text: 'Waiting for the first player…'
+    }));
     children.push(rosterNode());
 
     return panel(children, true);
   }
 
-  /* Who has signed up so far. */
+  /* Who has signed up so far. Always rendered, even when empty,
+     so that the first arrival can be patched in without having to
+     rebuild the scene to make room for it. */
   function rosterNode() {
-    var board = state.board || [];
-    if (!board.length) {
-      return Store.isCloud
-        ? UI.el('p.stage__explain', { text: 'Waiting for the first player…' })
-        : null;
-    }
-    var wrap = UI.el('div.stage__roster' + (board.length > 12 ? '.is-crowded' : ''), {},
-      board.map(function (t) {
-        return UI.el('span.stage__roster-item', { text: t.name });
-      }));
-    if (!state.boardTruncated) return wrap;
-    return UI.el('div.stack.stack--tight', { style: 'align-items: center' }, [
-      wrap,
-      UI.el('p.stage__explain', { text: '+ ' + UI.plural(state.boardTruncated, 'more player') })
+    return UI.el('div.stack.stack--tight', { id: 'roster-wrap', style: 'align-items: center' }, [
+      UI.el('div.stage__roster', { id: 'roster' }),
+      UI.el('p.stage__explain', { id: 'roster-more', text: '' })
     ]);
+  }
+
+  /* Patch the roster in place: add the names that are new, drop
+     the ones that have gone, leave the rest alone. Only a new
+     name animates, and the scene around it never restarts. */
+  function updateRoster() {
+    var host = UI.$('#roster');
+    if (!host) return;
+
+    var board = state.board || [];
+    var wanted = board.map(function (t) { return t.name; });
+
+    var existing = {};
+    UI.$$('.stage__roster-item', host).forEach(function (node) {
+      existing[node.dataset.name] = node;
+    });
+
+    wanted.forEach(function (name) {
+      if (existing[name]) {
+        delete existing[name];
+        return;
+      }
+      host.appendChild(UI.el('span.stage__roster-item', {
+        dataset: { name: name }, text: name
+      }));
+    });
+
+    /* Anything left in `existing` is a player the host removed. */
+    Object.keys(existing).forEach(function (name) {
+      var node = existing[name];
+      if (node.parentNode) node.parentNode.removeChild(node);
+    });
+
+    host.classList.toggle('is-crowded', wanted.length > 12);
+
+    var more = UI.$('#roster-more');
+    if (more) {
+      more.textContent = state.boardTruncated
+        ? '+ ' + UI.plural(state.boardTruncated, 'more player')
+        : '';
+    }
+
+    var waiting = UI.$('#roster-waiting');
+    if (waiting) waiting.classList.toggle('is-hidden', wanted.length > 0);
   }
 
   /* The URL the QR encodes. Built the same way the control room

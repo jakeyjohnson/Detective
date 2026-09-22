@@ -19,8 +19,9 @@ python3 -m http.server 8000
 
 Then:
 
-1. **http://localhost:8000/build.html** — write a case. The passphrase is
-   `lestrade` until you change it in `assets/js/config.js`.
+1. **http://localhost:8000/build.html** — press **Load the 50-question starter
+   pack**, or write your own. The passphrase is `lestrade` until you change it in
+   `assets/js/config.js`.
 2. **http://localhost:8000/host.html** — pick the case, press **Start show**.
 3. The control room gives you a link for the **projection screen**. Open it
    on the second screen and press **F** for full screen.
@@ -83,6 +84,75 @@ out a full cream screen, and the questions themselves stay light-on-dark.
 
 ---
 
+## How people get in
+
+The projection screen shows a QR code, the address in plain text, the five-character
+game code and tonight's venue password. Scanning takes a phone to the sign-up page
+with the code already filled in, so all anyone types is **their name and the venue
+password**.
+
+Set the password on the control room's setup screen before you start the show, or
+leave it empty for no password at all. **Suggest one** gives you something easy to
+shout across a noisy room.
+
+The typed route stays on screen next to the QR on purpose. A phone camera that will
+not focus in a dark venue must not be the end of somebody's night.
+
+### Where the password lives, and where it does not
+
+The point of a venue password is that only people in your room can play. That only
+holds if the password cannot be looked up, so:
+
+- It is stored in `quiz_session_keys`, a table with **no read policy at all** — not
+  even for a signed-in host. Set a new one rather than reading the old one back.
+- Joining goes through a `security definer` database function, `quiz_join_team()`,
+  which checks the password server-side. Players have no insert permission on the
+  teams table, so there is no way round the check.
+- It is **never** in the state the screens read. It reaches the projection through
+  the link the control room gives you (`present.html?code=…&vp=…`). Someone who
+  opens the projection with just the code sees no password.
+
+It could not have gone on the session row: that row is world-readable, which is how
+the projection and the leaderboard work at all, so a password there would be visible
+to precisely the person holding a second-hand join code.
+
+Comparison ignores capitals and surrounding spaces. It is a word read off a screen,
+and `"Lamplight "` failing is a person who cannot play.
+
+Treat it as a door policy rather than authentication: one shared word, on a screen,
+that the whole room can see.
+
+### The QR code
+
+Generated in the browser by `assets/js/qr.js` — no service, no network call, nothing
+to fail on the night. It is tested by decoding the output back through an independent
+reader and checking the Reed-Solomon syndromes are zero, because a wrong QR code
+still looks exactly like a QR code.
+
+If your address is long, set `joinUrl` in `assets/js/config.js` to something short
+and typable. That value is what goes in the QR and what the room reads off the screen.
+
+---
+
+## Live vote percentages
+
+While a question is open, the projection and every phone show the percentage behind
+each option, filling as answers arrive. It is a per-quiz setting, on by default,
+under **How the show runs** in the builder.
+
+Worth knowing before you use it: people can see it while they vote, so a clear early
+lead pulls the undecided towards it. Turn it off for a round where you want
+independent answers.
+
+It cannot leak the answer. The payload it is drawn from carries option ids, counts
+and shares, and nothing else — no correctness, not even indirectly. It is a separate
+function from the reveal breakdown rather than a filtered copy of it, precisely so
+that no future change to the reveal can quietly start feeding the live display; the
+tests assert the serialised payload contains no correctness at all and that it is
+absent in every phase except an open question.
+
+---
+
 ## Question types
 
 Every type can carry a video, audio or image alongside the question, and every
@@ -121,6 +191,43 @@ track can serve six questions.
 
 Play every clip through once in the builder before the show. A clip that fails
 in the venue is a dead question.
+
+---
+
+## The starter pack
+
+**Load the 50-question starter pack** in the builder gives you five rounds of ten:
+
+| Round | What it is |
+|---|---|
+| Opening Statements | Ten easy ones on detective fiction |
+| The Evidence | Ten picture questions — fingerprints, blood spatter, shoe treads, a cipher, Morse, a floor plan, a line-up, signatures |
+| Method | Ten typed answers on forensics and real cases |
+| Motive and Opportunity | An alibi timeline, two ordering questions, four numbers |
+| The Verdict | Nine harder ones, ending on a final wager |
+
+About 33 minutes and 610 points. It loads as a **new** case every time, so nothing
+you have written is overwritten and you can cut it up freely.
+
+The pictures are SVGs generated by `tools/make-pack-images.py`, not stock
+photographs. That means they work with no internet in the venue, nothing rots or
+changes licence under you, and — mainly — each one is drawn so the question is
+answerable from what is on screen. A photo of a fingerprint does not let a room pick
+which of four is a whorl.
+
+There are deliberately no audio or video questions in the pack: those need media
+files this repository cannot ship, and a question with an empty URL is a dead
+question. Adding one is a URL in the builder.
+
+`test/pack.test.js` checks the content the way `test/engine.test.js` checks the code:
+that every picture exists and is valid SVG, that no question contains its own answer,
+that every multiple choice has exactly one right option and no duplicate wording,
+that the marker accepts the pack's own typed answers, and that nothing about any
+answer is pushed while a question is open. The first run of it caught a question
+whose prompt named the district it was asking for.
+
+To edit the pack at source rather than in the builder, change `tools/make-pack.py`
+and re-run it.
 
 ---
 
@@ -273,18 +380,29 @@ again. Worth doing during setup rather than discovering it on question one.
 ## Tests
 
 ```bash
-node test/engine.test.js
+node test/engine.test.js    # 53 checks — scoring, redaction, phases
+node test/qr.test.js        # 28 checks — the QR encoder, by decoding it back
+node test/pack.test.js      # 14 checks — the starter pack's content
 ```
 
-47 checks over the parts that quietly ruin a live show if they are wrong:
-scoring for every input mode, the redaction guarantees, tie handling,
-phase navigation, validation, clock-skew correction and the results export.
-They run in plain node with no browser and no network.
+95 checks over the parts that quietly ruin a live show if they are wrong, all in
+plain node with no browser and no network:
 
-The browser tests that drive a whole show end to end — both modes, two player
-devices, the redaction checks against the live pushed state — are not in the
-repository, because they need Playwright and a stand-in for Supabase. They
-were used to verify this build and the findings are in the commit history.
+- **engine** — scoring for every input mode, the redaction guarantees, tie handling,
+  phase navigation, validation, clock-skew correction, the live vote payload and the
+  results export.
+- **qr** — every matrix decoded back through an independently written reader, with
+  the Reed-Solomon syndromes checked at zero, plus the format information, version
+  information, capacities and data-module counts cross-checked against the published
+  values in ISO/IEC 18004 rather than against the encoder itself.
+- **pack** — the content checks above.
+
+The browser tests that drive whole shows end to end are not in the repository,
+because they need Playwright and a stand-in for Supabase. They were used to verify
+this build — 33 checks in local mode and 50 in cloud mode, covering five devices
+signing up with the venue password, a wrong password being refused, the live vote
+split matching the votes cast, and the redaction checks run against the live pushed
+state rather than against the pixels. The findings are in the commit history.
 
 ---
 
@@ -321,10 +439,22 @@ assets/js/host.js       The control room
 assets/js/present.js    The projection screen
 assets/js/play.js       The player device
 assets/js/leaderboard.js The leaderboard
+assets/js/qr.js         QR encoder. No network, no service
+
+content/starter-pack.json  Fifty questions, five rounds
+assets/img/pack/        The picture round's evidence, as SVG
+
+tools/make-pack.py      Rebuilds the starter pack
+tools/make-pack-images.py  Redraws its pictures
 
 supabase/schema.sql     Run once. Tables, security policies, the
-                          trigger that protects the marks
+                          join function that enforces the venue
+                          password, and the trigger that protects
+                          the marks
+
 test/engine.test.js     node test/engine.test.js
+test/qr.test.js         node test/qr.test.js
+test/pack.test.js       node test/pack.test.js
 ```
 
 Quizzes export and import as JSON, so a case can be moved between machines,
@@ -342,7 +472,8 @@ changing. `input` picks the answer widget: `choice`, `text`, `order`,
 
 ## Two external requests
 
-The pages load `supabase-js` and two webfonts from a CDN. Neither is required:
+The pages load `supabase-js` and two webfonts from a CDN. The QR code is generated
+locally and needs neither. Neither request is required:
 without the fonts the app falls back to the system stack, and without
 `supabase-js` it drops to local mode and says so in the console rather than
 breaking. If you are running a show somewhere with no internet, download both

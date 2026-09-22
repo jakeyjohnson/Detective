@@ -1,0 +1,2212 @@
+{
+  "id": "pack_starter_01",
+  "title": "Play Detective — Starter Case",
+  "subtitle": "Fifty questions across five rounds. Swap them for your own.",
+  "createdAt": "2026-09-22T00:00:00.000Z",
+  "updatedAt": "2026-09-22T00:00:00.000Z",
+  "settings": {
+    "liveVotes": true,
+    "speedBonus": false,
+    "showBoardAfterEach": false,
+    "showBoardAfterRound": true,
+    "shuffleOptions": false,
+    "allowLateJoin": true
+  },
+  "rounds": [
+    {
+      "id": "pack_r001",
+      "title": "Opening Statements",
+      "description": "Ten to warm the room up. Nobody is out yet.",
+      "questions": [
+        {
+          "id": "pack_q001",
+          "type": "multiple-choice",
+          "prompt": "Who created Sherlock Holmes?",
+          "points": 10,
+          "timeLimit": 25,
+          "explanation": "A Study in Scarlet, 1887.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o001",
+              "text": "Arthur Conan Doyle",
+              "correct": true
+            },
+            {
+              "id": "pack_o002",
+              "text": "Wilkie Collins",
+              "correct": false
+            },
+            {
+              "id": "pack_o003",
+              "text": "Edgar Allan Poe",
+              "correct": false
+            },
+            {
+              "id": "pack_o004",
+              "text": "G. K. Chesterton",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q002",
+          "type": "multiple-choice",
+          "prompt": "What is Sherlock Holmes’s address?",
+          "points": 10,
+          "timeLimit": 25,
+          "explanation": "",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o005",
+              "text": "221B Baker Street",
+              "correct": true
+            },
+            {
+              "id": "pack_o006",
+              "text": "21B Baker Street",
+              "correct": false
+            },
+            {
+              "id": "pack_o007",
+              "text": "221B Marylebone Road",
+              "correct": false
+            },
+            {
+              "id": "pack_o008",
+              "text": "12 Baker Street",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q003",
+          "type": "true-false",
+          "prompt": "Sherlock Holmes never says “Elementary, my dear Watson” in any of Conan Doyle’s stories.",
+          "points": 10,
+          "timeLimit": 15,
+          "explanation": "He says “Elementary” and he says “my dear Watson”, but never the two together. The line came later, from the stage and screen.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o009",
+              "text": "True",
+              "correct": true
+            },
+            {
+              "id": "pack_o010",
+              "text": "False",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q004",
+          "type": "multiple-choice",
+          "prompt": "Which detective did Agatha Christie make Belgian?",
+          "points": 10,
+          "timeLimit": 25,
+          "explanation": "",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o011",
+              "text": "Hercule Poirot",
+              "correct": true
+            },
+            {
+              "id": "pack_o012",
+              "text": "Inspector Japp",
+              "correct": false
+            },
+            {
+              "id": "pack_o013",
+              "text": "Tommy Beresford",
+              "correct": false
+            },
+            {
+              "id": "pack_o014",
+              "text": "Superintendent Battle",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q005",
+          "type": "multiple-choice",
+          "prompt": "Which of Christie’s detectives is an elderly spinster living in a village?",
+          "points": 10,
+          "timeLimit": 25,
+          "explanation": "",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o015",
+              "text": "Miss Marple",
+              "correct": true
+            },
+            {
+              "id": "pack_o016",
+              "text": "Ariadne Oliver",
+              "correct": false
+            },
+            {
+              "id": "pack_o017",
+              "text": "Miss Lemon",
+              "correct": false
+            },
+            {
+              "id": "pack_o018",
+              "text": "Mrs McGinty",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q006",
+          "type": "multiple-choice",
+          "prompt": "Which of these is NOT a room on the classic British Cluedo board?",
+          "points": 10,
+          "timeLimit": 25,
+          "explanation": "",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o019",
+              "text": "The Cellar",
+              "correct": true
+            },
+            {
+              "id": "pack_o020",
+              "text": "The Conservatory",
+              "correct": false
+            },
+            {
+              "id": "pack_o021",
+              "text": "The Billiard Room",
+              "correct": false
+            },
+            {
+              "id": "pack_o022",
+              "text": "The Ballroom",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q007",
+          "type": "true-false",
+          "prompt": "Agatha Christie is the best-selling novelist of all time.",
+          "points": 10,
+          "timeLimit": 15,
+          "explanation": "Somewhere around two billion copies, in more than a hundred languages.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o023",
+              "text": "True",
+              "correct": true
+            },
+            {
+              "id": "pack_o024",
+              "text": "False",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q008",
+          "type": "multiple-choice",
+          "prompt": "Who wrote The Big Sleep?",
+          "points": 10,
+          "timeLimit": 25,
+          "explanation": "",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o025",
+              "text": "Raymond Chandler",
+              "correct": true
+            },
+            {
+              "id": "pack_o026",
+              "text": "Dashiell Hammett",
+              "correct": false
+            },
+            {
+              "id": "pack_o027",
+              "text": "James M. Cain",
+              "correct": false
+            },
+            {
+              "id": "pack_o028",
+              "text": "Ross Macdonald",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q009",
+          "type": "multiple-choice",
+          "prompt": "Which private detective did Raymond Chandler create?",
+          "points": 10,
+          "timeLimit": 25,
+          "explanation": "Sam Spade is Hammett’s. It is the single most common mix-up in crime fiction.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o029",
+              "text": "Philip Marlowe",
+              "correct": true
+            },
+            {
+              "id": "pack_o030",
+              "text": "Sam Spade",
+              "correct": false
+            },
+            {
+              "id": "pack_o031",
+              "text": "Lew Archer",
+              "correct": false
+            },
+            {
+              "id": "pack_o032",
+              "text": "Mike Hammer",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q010",
+          "type": "multiple-choice",
+          "prompt": "In Murder on the Orient Express, where is the train travelling from and to?",
+          "points": 10,
+          "timeLimit": 25,
+          "explanation": "",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o033",
+              "text": "Istanbul to Calais",
+              "correct": true
+            },
+            {
+              "id": "pack_o034",
+              "text": "Paris to Istanbul",
+              "correct": false
+            },
+            {
+              "id": "pack_o035",
+              "text": "Vienna to Venice",
+              "correct": false
+            },
+            {
+              "id": "pack_o036",
+              "text": "Belgrade to London",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        }
+      ]
+    },
+    {
+      "id": "pack_r002",
+      "title": "The Evidence",
+      "description": "Everything you need is on the screen. Look properly.",
+      "questions": [
+        {
+          "id": "pack_q011",
+          "type": "image",
+          "prompt": "Which of these four fingerprints is a WHORL?",
+          "points": 15,
+          "timeLimit": 35,
+          "explanation": "A whorl has ridges that form complete circles. A is a loop, C is a plain arch, D is a tented arch.",
+          "media": {
+            "kind": "image",
+            "url": "assets/img/pack/fingerprints-1.svg",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o037",
+              "text": "A",
+              "correct": false
+            },
+            {
+              "id": "pack_o038",
+              "text": "B",
+              "correct": true
+            },
+            {
+              "id": "pack_o039",
+              "text": "C",
+              "correct": false
+            },
+            {
+              "id": "pack_o040",
+              "text": "D",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q012",
+          "type": "image",
+          "prompt": "Which of these four fingerprints is a TENTED ARCH?",
+          "points": 15,
+          "timeLimit": 35,
+          "explanation": "A tented arch comes to a sharp point. B is a plain arch, C is a loop, D is a whorl.",
+          "media": {
+            "kind": "image",
+            "url": "assets/img/pack/fingerprints-2.svg",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o041",
+              "text": "A",
+              "correct": true
+            },
+            {
+              "id": "pack_o042",
+              "text": "B",
+              "correct": false
+            },
+            {
+              "id": "pack_o043",
+              "text": "C",
+              "correct": false
+            },
+            {
+              "id": "pack_o044",
+              "text": "D",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q013",
+          "type": "image",
+          "prompt": "One of these patterns was made by high-velocity impact spatter — a fine mist of tiny droplets. Which?",
+          "points": 15,
+          "timeLimit": 35,
+          "explanation": "B. A is passive dripping, C is cast-off from a swung object, D is a transfer smear from contact.",
+          "media": {
+            "kind": "image",
+            "url": "assets/img/pack/spatter.svg",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o045",
+              "text": "A",
+              "correct": false
+            },
+            {
+              "id": "pack_o046",
+              "text": "B",
+              "correct": true
+            },
+            {
+              "id": "pack_o047",
+              "text": "C",
+              "correct": false
+            },
+            {
+              "id": "pack_o048",
+              "text": "D",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q014",
+          "type": "image",
+          "prompt": "Which pattern is CAST-OFF — blood flung from a moving object?",
+          "points": 15,
+          "timeLimit": 35,
+          "explanation": "C. The drops are elongated and in a line, thrown along the arc of a swing.",
+          "media": {
+            "kind": "image",
+            "url": "assets/img/pack/spatter.svg",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o049",
+              "text": "A",
+              "correct": false
+            },
+            {
+              "id": "pack_o050",
+              "text": "B",
+              "correct": false
+            },
+            {
+              "id": "pack_o051",
+              "text": "C",
+              "correct": true
+            },
+            {
+              "id": "pack_o052",
+              "text": "D",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q015",
+          "type": "image",
+          "prompt": "Whose sole made the print found at the scene?",
+          "points": 15,
+          "timeLimit": 35,
+          "explanation": "C. The chevrons match, pointing the same way and the same width apart.",
+          "media": {
+            "kind": "image",
+            "url": "assets/img/pack/treads.svg",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o053",
+              "text": "A",
+              "correct": false
+            },
+            {
+              "id": "pack_o054",
+              "text": "B",
+              "correct": false
+            },
+            {
+              "id": "pack_o055",
+              "text": "C",
+              "correct": true
+            },
+            {
+              "id": "pack_o056",
+              "text": "D",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q016",
+          "type": "image",
+          "prompt": "Decipher the note. Each letter has been shifted three places forward in the alphabet.",
+          "points": 20,
+          "timeLimit": 75,
+          "explanation": "P becomes M, H becomes E, and so on back three: MEET AT MIDNIGHT.",
+          "media": {
+            "kind": "image",
+            "url": "assets/img/pack/cipher.svg",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [
+            "MEET AT MIDNIGHT",
+            "meet at midnight"
+          ],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "text"
+        },
+        {
+          "id": "pack_q017",
+          "type": "image",
+          "prompt": "What word was tapped out in Morse code?",
+          "points": 20,
+          "timeLimit": 75,
+          "explanation": ".--. / --- / .. / ... / --- / -. spells POISON.",
+          "media": {
+            "kind": "image",
+            "url": "assets/img/pack/morse.svg",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [
+            "POISON"
+          ],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "text"
+        },
+        {
+          "id": "pack_q018",
+          "type": "image",
+          "prompt": "Looking at the floor plan, which exit is nearest the body?",
+          "points": 15,
+          "timeLimit": 35,
+          "explanation": "B, on the library’s west wall, with nothing between it and the body.",
+          "media": {
+            "kind": "image",
+            "url": "assets/img/pack/floorplan.svg",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o057",
+              "text": "A",
+              "correct": false
+            },
+            {
+              "id": "pack_o058",
+              "text": "B",
+              "correct": true
+            },
+            {
+              "id": "pack_o059",
+              "text": "C",
+              "correct": false
+            },
+            {
+              "id": "pack_o060",
+              "text": "D",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q019",
+          "type": "image",
+          "prompt": "The witness saw a TALL figure, in a HAT, wearing a LONG COAT. Which one is it?",
+          "points": 15,
+          "timeLimit": 35,
+          "explanation": "C is the only one with all three. A has no hat, B’s coat is short, D is not tall.",
+          "media": {
+            "kind": "image",
+            "url": "assets/img/pack/lineup.svg",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o061",
+              "text": "A",
+              "correct": false
+            },
+            {
+              "id": "pack_o062",
+              "text": "B",
+              "correct": false
+            },
+            {
+              "id": "pack_o063",
+              "text": "C",
+              "correct": true
+            },
+            {
+              "id": "pack_o064",
+              "text": "D",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q020",
+          "type": "image",
+          "prompt": "Three of these signatures were written by the same hand. Which is the forgery?",
+          "points": 15,
+          "timeLimit": 35,
+          "explanation": "C. A forgery is drawn rather than written, so the line shakes and the pen stops and starts. The others are one confident stroke.",
+          "media": {
+            "kind": "image",
+            "url": "assets/img/pack/signatures.svg",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o065",
+              "text": "A",
+              "correct": false
+            },
+            {
+              "id": "pack_o066",
+              "text": "B",
+              "correct": false
+            },
+            {
+              "id": "pack_o067",
+              "text": "C",
+              "correct": true
+            },
+            {
+              "id": "pack_o068",
+              "text": "D",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        }
+      ]
+    },
+    {
+      "id": "pack_r003",
+      "title": "Method",
+      "description": "How it is actually done. Typed answers — spelling is forgiven.",
+      "questions": [
+        {
+          "id": "pack_q021",
+          "type": "standard",
+          "prompt": "What does DNA stand for?",
+          "points": 10,
+          "timeLimit": 30,
+          "explanation": "Deoxyribonucleic acid.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [
+            "Deoxyribonucleic acid",
+            "deoxyribonucleic"
+          ],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "text"
+        },
+        {
+          "id": "pack_q022",
+          "type": "standard",
+          "prompt": "In which London district did the 1888 murders attributed to Jack the Ripper take place?",
+          "points": 10,
+          "timeLimit": 30,
+          "explanation": "Whitechapel, in the East End.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [
+            "Whitechapel"
+          ],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "text"
+        },
+        {
+          "id": "pack_q023",
+          "type": "standard",
+          "prompt": "What is the study of insects used to help establish a time of death called?",
+          "points": 10,
+          "timeLimit": 30,
+          "explanation": "Forensic entomology. Which insects arrive, and when, puts a clock on a body.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [
+            "Forensic entomology",
+            "entomology"
+          ],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "text"
+        },
+        {
+          "id": "pack_q024",
+          "type": "standard",
+          "prompt": "Luminol is sprayed at a scene to reveal traces of what?",
+          "points": 10,
+          "timeLimit": 30,
+          "explanation": "Blood. It glows blue where haemoglobin remains, even after cleaning.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [
+            "Blood"
+          ],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "text"
+        },
+        {
+          "id": "pack_q025",
+          "type": "standard",
+          "prompt": "By what name is the headquarters of London’s Metropolitan Police known?",
+          "points": 10,
+          "timeLimit": 30,
+          "explanation": "Scotland Yard — after Great Scotland Yard, its first address.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [
+            "Scotland Yard",
+            "New Scotland Yard"
+          ],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "text"
+        },
+        {
+          "id": "pack_q026",
+          "type": "standard",
+          "prompt": "Rigor mortis is the stiffening of what, after death?",
+          "points": 10,
+          "timeLimit": 30,
+          "explanation": "The muscles. It sets in over a few hours and passes off over a day or so.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [
+            "Muscles",
+            "the muscles"
+          ],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "text"
+        },
+        {
+          "id": "pack_q027",
+          "type": "standard",
+          "prompt": "Which poison was known in Victorian times as “inheritance powder”?",
+          "points": 10,
+          "timeLimit": 30,
+          "explanation": "Arsenic. Cheap, tasteless, and undetectable until the Marsh test.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [
+            "Arsenic"
+          ],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "text"
+        },
+        {
+          "id": "pack_q028",
+          "type": "standard",
+          "prompt": "What word means evidence that you were somewhere else when the crime was committed?",
+          "points": 10,
+          "timeLimit": 30,
+          "explanation": "An alibi — Latin for “elsewhere”.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [
+            "Alibi",
+            "An alibi"
+          ],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "text"
+        },
+        {
+          "id": "pack_q029",
+          "type": "standard",
+          "prompt": "A ballistics examiner matches marks on a fired bullet to what?",
+          "points": 10,
+          "timeLimit": 30,
+          "explanation": "The barrel. Rifling scratches the bullet in a pattern unique to that gun.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [
+            "The barrel",
+            "The gun",
+            "The rifling",
+            "The barrel of the gun",
+            "The weapon"
+          ],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "text"
+        },
+        {
+          "id": "pack_q030",
+          "type": "standard",
+          "prompt": "What is the medical examination of a body after death called?",
+          "points": 10,
+          "timeLimit": 30,
+          "explanation": "A post-mortem, or an autopsy.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [
+            "Post-mortem",
+            "Autopsy",
+            "Post mortem",
+            "A post-mortem",
+            "An autopsy"
+          ],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "text"
+        }
+      ]
+    },
+    {
+      "id": "pack_r004",
+      "title": "Motive and Opportunity",
+      "description": "Orders, numbers, and one look at a timeline.",
+      "questions": [
+        {
+          "id": "pack_q031",
+          "type": "image",
+          "prompt": "Studying the alibi timeline, who cannot account for 9pm?",
+          "points": 15,
+          "timeLimit": 35,
+          "explanation": "The nephew. Everyone else is covered from 7pm straight through to 11pm.",
+          "media": {
+            "kind": "image",
+            "url": "assets/img/pack/timeline.svg",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o069",
+              "text": "The butler",
+              "correct": false
+            },
+            {
+              "id": "pack_o070",
+              "text": "The cook",
+              "correct": false
+            },
+            {
+              "id": "pack_o071",
+              "text": "The nephew",
+              "correct": true
+            },
+            {
+              "id": "pack_o072",
+              "text": "The doctor",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q032",
+          "type": "ordering",
+          "prompt": "Put these four Sherlock Holmes novels in the order they were published, earliest first.",
+          "points": 15,
+          "timeLimit": 60,
+          "explanation": "1887, 1890, 1902 and 1915.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [
+            {
+              "id": "pack_i001",
+              "text": "A Study in Scarlet"
+            },
+            {
+              "id": "pack_i002",
+              "text": "The Sign of the Four"
+            },
+            {
+              "id": "pack_i003",
+              "text": "The Hound of the Baskervilles"
+            },
+            {
+              "id": "pack_i004",
+              "text": "The Valley of Fear"
+            }
+          ],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "order"
+        },
+        {
+          "id": "pack_q033",
+          "type": "numeric",
+          "prompt": "How many Sherlock Holmes SHORT STORIES did Conan Doyle write?",
+          "points": 10,
+          "timeLimit": 25,
+          "explanation": "Fifty-six short stories and four novels — the sixty works of the canon.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 56,
+            "tolerance": 2
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "number"
+        },
+        {
+          "id": "pack_q034",
+          "type": "numeric",
+          "prompt": "In what year was the first Sherlock Holmes story published?",
+          "points": 10,
+          "timeLimit": 25,
+          "explanation": "A Study in Scarlet, in Beeton’s Christmas Annual, 1887.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 1887,
+            "tolerance": 2
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "number"
+        },
+        {
+          "id": "pack_q035",
+          "type": "numeric",
+          "prompt": "How many rooms are there on the classic British Cluedo board?",
+          "points": 10,
+          "timeLimit": 25,
+          "explanation": "Nine: kitchen, ballroom, conservatory, dining room, billiard room, library, lounge, hall and study.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 9,
+            "tolerance": 0
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "number"
+        },
+        {
+          "id": "pack_q036",
+          "type": "multiple-choice",
+          "prompt": "Which of these is NOT one of the six weapons in classic British Cluedo?",
+          "points": 10,
+          "timeLimit": 25,
+          "explanation": "",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o073",
+              "text": "The crossbow",
+              "correct": true
+            },
+            {
+              "id": "pack_o074",
+              "text": "The candlestick",
+              "correct": false
+            },
+            {
+              "id": "pack_o075",
+              "text": "The lead pipe",
+              "correct": false
+            },
+            {
+              "id": "pack_o076",
+              "text": "The spanner",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q037",
+          "type": "multiple-choice",
+          "prompt": "In which village does Miss Marple live?",
+          "points": 10,
+          "timeLimit": 25,
+          "explanation": "",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o077",
+              "text": "St Mary Mead",
+              "correct": true
+            },
+            {
+              "id": "pack_o078",
+              "text": "Chipping Cleghorn",
+              "correct": false
+            },
+            {
+              "id": "pack_o079",
+              "text": "Market Basing",
+              "correct": false
+            },
+            {
+              "id": "pack_o080",
+              "text": "Wychwood-under-Ashe",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q038",
+          "type": "standard",
+          "prompt": "Which Agatha Christie novel caused an outcry over who its narrator turned out to be?",
+          "points": 10,
+          "timeLimit": 35,
+          "explanation": "The Murder of Roger Ackroyd, 1926.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [
+            "The Murder of Roger Ackroyd",
+            "Roger Ackroyd"
+          ],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "text"
+        },
+        {
+          "id": "pack_q039",
+          "type": "numeric",
+          "prompt": "How many suspects are there in classic British Cluedo?",
+          "points": 10,
+          "timeLimit": 25,
+          "explanation": "Six: Scarlett, Mustard, White, Green, Peacock and Plum.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 6,
+            "tolerance": 0
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "number"
+        },
+        {
+          "id": "pack_q040",
+          "type": "ordering",
+          "prompt": "Put these detectives in the order their first book appeared, earliest first.",
+          "points": 15,
+          "timeLimit": 60,
+          "explanation": "Holmes 1887, Poirot 1920, Marple 1930, Marlowe 1939.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [
+            {
+              "id": "pack_i005",
+              "text": "Sherlock Holmes"
+            },
+            {
+              "id": "pack_i006",
+              "text": "Hercule Poirot"
+            },
+            {
+              "id": "pack_i007",
+              "text": "Miss Marple"
+            },
+            {
+              "id": "pack_i008",
+              "text": "Philip Marlowe"
+            }
+          ],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "order"
+        }
+      ]
+    },
+    {
+      "id": "pack_r005",
+      "title": "The Verdict",
+      "description": "Harder, worth more, and it ends on a wager.",
+      "questions": [
+        {
+          "id": "pack_q041",
+          "type": "multiple-choice",
+          "prompt": "On which moor is The Hound of the Baskervilles set?",
+          "points": 15,
+          "timeLimit": 25,
+          "explanation": "",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o081",
+              "text": "Dartmoor",
+              "correct": true
+            },
+            {
+              "id": "pack_o082",
+              "text": "Exmoor",
+              "correct": false
+            },
+            {
+              "id": "pack_o083",
+              "text": "Bodmin Moor",
+              "correct": false
+            },
+            {
+              "id": "pack_o084",
+              "text": "Ilkley Moor",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q042",
+          "type": "multiple-choice",
+          "prompt": "Which city is Inspector Morse’s beat?",
+          "points": 15,
+          "timeLimit": 25,
+          "explanation": "",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o085",
+              "text": "Oxford",
+              "correct": true
+            },
+            {
+              "id": "pack_o086",
+              "text": "Cambridge",
+              "correct": false
+            },
+            {
+              "id": "pack_o087",
+              "text": "Bath",
+              "correct": false
+            },
+            {
+              "id": "pack_o088",
+              "text": "York",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q043",
+          "type": "multiple-choice",
+          "prompt": "Which city does Ian Rankin’s Inspector Rebus work in?",
+          "points": 15,
+          "timeLimit": 25,
+          "explanation": "",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o089",
+              "text": "Edinburgh",
+              "correct": true
+            },
+            {
+              "id": "pack_o090",
+              "text": "Glasgow",
+              "correct": false
+            },
+            {
+              "id": "pack_o091",
+              "text": "Aberdeen",
+              "correct": false
+            },
+            {
+              "id": "pack_o092",
+              "text": "Dundee",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q044",
+          "type": "multiple-choice",
+          "prompt": "Who wrote Gone Girl?",
+          "points": 15,
+          "timeLimit": 25,
+          "explanation": "",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o093",
+              "text": "Gillian Flynn",
+              "correct": true
+            },
+            {
+              "id": "pack_o094",
+              "text": "Paula Hawkins",
+              "correct": false
+            },
+            {
+              "id": "pack_o095",
+              "text": "Tana French",
+              "correct": false
+            },
+            {
+              "id": "pack_o096",
+              "text": "Megan Abbott",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q045",
+          "type": "multiple-choice",
+          "prompt": "Who wrote The Girl with the Dragon Tattoo?",
+          "points": 15,
+          "timeLimit": 25,
+          "explanation": "",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o097",
+              "text": "Stieg Larsson",
+              "correct": true
+            },
+            {
+              "id": "pack_o098",
+              "text": "Jo Nesbø",
+              "correct": false
+            },
+            {
+              "id": "pack_o099",
+              "text": "Henning Mankell",
+              "correct": false
+            },
+            {
+              "id": "pack_o100",
+              "text": "Camilla Läckberg",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q046",
+          "type": "standard",
+          "prompt": "Poirot credits his solutions to his little grey what?",
+          "points": 15,
+          "timeLimit": 20,
+          "explanation": "His little grey cells.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [
+            "Cells",
+            "Little grey cells",
+            "Grey cells"
+          ],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "text"
+        },
+        {
+          "id": "pack_q047",
+          "type": "true-false",
+          "prompt": "Columbo’s first name is never revealed in the series.",
+          "points": 15,
+          "timeLimit": 15,
+          "explanation": "Never spoken on screen. It is glimpsed as “Frank” on his police ID in one episode, which fans still argue about.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o101",
+              "text": "True",
+              "correct": true
+            },
+            {
+              "id": "pack_o102",
+              "text": "False",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q048",
+          "type": "multiple-choice",
+          "prompt": "In which country is Henning Mankell’s Kurt Wallander a detective?",
+          "points": 15,
+          "timeLimit": 25,
+          "explanation": "Ystad, in the far south of Sweden.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o103",
+              "text": "Sweden",
+              "correct": true
+            },
+            {
+              "id": "pack_o104",
+              "text": "Norway",
+              "correct": false
+            },
+            {
+              "id": "pack_o105",
+              "text": "Denmark",
+              "correct": false
+            },
+            {
+              "id": "pack_o106",
+              "text": "Finland",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q049",
+          "type": "multiple-choice",
+          "prompt": "Which English county was the television series Broadchurch filmed in?",
+          "points": 15,
+          "timeLimit": 25,
+          "explanation": "Mostly around West Bay in Dorset.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [
+            {
+              "id": "pack_o107",
+              "text": "Dorset",
+              "correct": true
+            },
+            {
+              "id": "pack_o108",
+              "text": "Cornwall",
+              "correct": false
+            },
+            {
+              "id": "pack_o109",
+              "text": "Devon",
+              "correct": false
+            },
+            {
+              "id": "pack_o110",
+              "text": "Kent",
+              "correct": false
+            }
+          ],
+          "multiCorrect": false,
+          "answers": [],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "choice"
+        },
+        {
+          "id": "pack_q050",
+          "type": "wager",
+          "prompt": "Name the Belgian author who created Inspector Maigret.",
+          "points": 0,
+          "timeLimit": 90,
+          "explanation": "Georges Simenon, who wrote seventy-five Maigret novels.",
+          "media": {
+            "kind": "none",
+            "url": "",
+            "startAt": null,
+            "endAt": null,
+            "autoplay": true,
+            "loop": false
+          },
+          "options": [],
+          "multiCorrect": false,
+          "answers": [
+            "Georges Simenon"
+          ],
+          "acceptClose": true,
+          "items": [],
+          "numeric": {
+            "value": 0,
+            "tolerance": null
+          },
+          "wager": {
+            "min": 0,
+            "max": null
+          },
+          "input": "judged"
+        }
+      ]
+    }
+  ]
+}

@@ -169,6 +169,37 @@
       window.location.href = 'build.html';
     });
 
+    UI.$('#load-pack').addEventListener('click', function () {
+      var btn = UI.$('#load-pack');
+      btn.disabled = true;
+      btn.textContent = 'Loading…';
+
+      /* Saved as a NEW case with fresh ids, exactly like an
+         import, so loading it twice gives two copies rather than
+         clobbering edits made to the first. */
+      window.fetch('content/starter-pack.json', { cache: 'no-store' })
+        .then(function (res) {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
+        })
+        .then(function (data) {
+          var pack = Model.normaliseQuiz(data);
+          pack.id = Model.uid('quiz');
+          return Store.quizzes.save(pack).then(function () {
+            window.location.href = 'build.html?quiz=' + encodeURIComponent(pack.id);
+          });
+        })
+        .catch(function (err) {
+          btn.disabled = false;
+          btn.textContent = 'Load the 50-question starter pack';
+          /* The usual cause is opening the file directly rather
+             than through a server, where fetch is blocked — worth
+             saying, because the generic message is useless. */
+          UI.toast('Could not load the starter pack (' + (err.message || 'failed') +
+            '). It needs to be served over http, not opened as a file.', 'error');
+        });
+    });
+
     UI.$('#run-show').addEventListener('click', function () {
       var errors = Model.validate(quiz).filter(function (i) { return i.level === 'error'; });
       if (errors.length && !UI.confirm(
