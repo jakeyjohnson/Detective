@@ -309,6 +309,61 @@ check('a team that never answered still appears on zero', () => {
 });
 
 /* =========================================================
+   Venue answers — the door, not the quiz
+   ========================================================= */
+check('a venue answer matches after the same normalisation the database uses', () => {
+  const accepted = ['a piano', 'piano'];
+  ok(Model.matchesAnswerList('a piano', accepted), 'exactly');
+  ok(Model.matchesAnswerList('Piano', accepted), 'capitals');
+  ok(Model.matchesAnswerList('  the piano.  ', accepted), 'article, punctuation and spaces');
+  ok(Model.matchesAnswerList('PIANO!!!', accepted), 'shouting');
+});
+
+check('a venue answer is exact after normalising, never fuzzy', () => {
+  /* Unlike a quiz answer, nobody is standing there to overrule a
+     near miss, and letting them through defeats the point of
+     having a door at all. */
+  ok(!Model.matchesAnswerList('pianos', ['piano']), 'a plural is not the answer');
+  ok(!Model.matchesAnswerList('pian', ['piano']), 'a truncation is not the answer');
+  ok(!Model.matchesAnswerList('keyboard', ['piano']), 'a different answer is not the answer');
+});
+
+check('an empty answer never opens the door', () => {
+  ok(!Model.matchesAnswerList('', ['piano']), 'empty');
+  ok(!Model.matchesAnswerList('   ', ['piano']), 'whitespace');
+  ok(!Model.matchesAnswerList('piano', []), 'nothing accepted');
+  ok(!Model.matchesAnswerList('piano', ['']), 'a blank accepted answer is not a wildcard');
+});
+
+check('the riddle is published but its answer is not', () => {
+  const quiz = Model.newQuiz('Case');
+  quiz.rounds[0].questions = [choiceQuestion(1)];
+
+  const state = Show.buildState({
+    code: 'ABCDE', quiz, cursor: -1, phase: 'lobby', teams: [], answers: [],
+    venueRiddle: 'What has many keys but cannot open a single lock?'
+  });
+
+  eq(state.venueRiddle, 'What has many keys but cannot open a single lock?',
+    'the riddle rides along, because the room has to read it');
+
+  /* buildState is never given the answer, and there is no field
+     for one. That is the whole design: the riddle is public and
+     the answer lives only in the database. */
+  const wire = JSON.stringify(state);
+  ok(!/piano/i.test(wire), 'no answer anywhere in the pushed state');
+  ok(!('venuePassword' in state), 'no password field exists at all');
+  ok(!('venueAnswers' in state), 'nor a list of accepted answers');
+});
+
+check('a show with no riddle publishes an empty one, not undefined', () => {
+  const quiz = Model.newQuiz('Case');
+  quiz.rounds[0].questions = [choiceQuestion(1)];
+  const state = Show.buildState({ code: 'ABCDE', quiz, cursor: -1, phase: 'lobby', teams: [], answers: [] });
+  eq(state.venueRiddle, '', 'empty string');
+});
+
+/* =========================================================
    Redaction — the security-relevant part
    ========================================================= */
 check('a public question never carries the correct option', () => {

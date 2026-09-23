@@ -70,8 +70,17 @@ create table if not exists quiz_sessions (
 create table if not exists quiz_session_keys (
   session_code    text primary key references quiz_sessions (code) on delete cascade,
   venue_password  text not null default '',
+  -- Other wordings that also get people in. A riddle answer is
+  -- rarely one exact string: "a keyboard", "keyboard" and
+  -- "computer keyboard" are all the same person getting it right.
+  venue_answers   text[] not null default '{}',
   created_at      timestamptz not null default now()
 );
+
+-- Safe to run against a database created before venue_answers
+-- existed.
+alter table quiz_session_keys
+  add column if not exists venue_answers text[] not null default '{}';
 
 
 -- ---------------------------------------------------------
@@ -254,6 +263,45 @@ create policy quiz_answers_host_update on quiz_answers
 
 
 -- ---------------------------------------------------------
+-- 5. How an answer is compared.
+--
+--    The same normalisation the app uses on typed quiz answers,
+--    because the venue password is now often the answer to a
+--    riddle rather than a word read off a card. Someone who
+--    solves the riddle and types "A Keyboard." has solved the
+--    riddle, and being turned away on a full stop is the sort of
+--    thing that loses a person their evening.
+--
+--    Case, surrounding space, punctuation, common accents, "and"
+--    versus "&", and a leading "the"/"a"/"an" all stop mattering.
+--    Nothing else does: this is not fuzzy matching, so a wrong
+--    answer is still a wrong answer.
+-- ---------------------------------------------------------
+create or replace function quiz_normalise_answer(p_text text)
+returns text
+language sql
+immutable
+as $$
+  select btrim(
+    regexp_replace(
+      regexp_replace(
+        regexp_replace(
+          translate(
+            replace(lower(btrim(coalesce(p_text, ''))), '&', ' and '),
+            'áàâäãåéèêëíìîïóòôöõúùûüñçýÿ',
+            'aaaaaaeeeeiiiiooooouuuuncyy'
+          ),
+          '[^a-z0-9 ]', ' ', 'g'          -- drop punctuation
+        ),
+        '\m(the|a|an)\M', ' ', 'g'        -- drop articles
+      ),
+      '\s+', ' ', 'g'                     -- collapse whitespace
+    )
+  );
+$$;
+
+
+-- ---------------------------------------------------------
 -- 5a. Setting tonight's venue password.
 --
 --     A SECURITY DEFINER function runs as its owner and so
@@ -263,7 +311,16 @@ create policy quiz_answers_host_update on quiz_answers
 --     password, so it is not optional, and EXECUTE is granted to
 --     signed-in accounts only.
 -- ---------------------------------------------------------
-create or replace function quiz_set_venue_password(p_code text, p_password text)
+-- The old two-argument form is replaced, not overloaded: two
+-- versions of this function would be two places for the
+-- authorisation check to drift apart.
+drop function if exists quiz_set_venue_password(text, text);
+
+create or replace function quiz_set_venue_password(
+  p_code text,
+  p_password text,
+  p_answers text[] default '{}'
+)
 returns void
 language plpgsql
 security definer
@@ -274,15 +331,18 @@ begin
     raise exception 'NOT_SIGNED_IN';
   end if;
 
-  insert into quiz_session_keys (session_code, venue_password)
-  values (upper(btrim(p_code)), btrim(coalesce(p_password, '')))
+  insert into quiz_session_keys (session_code, venue_password, venue_answers)
+  values (upper(btrim(p_code)),
+          btrim(coalesce(p_password, '')),
+          coalesce(p_answers, '{}'))
   on conflict (session_code)
-    do update set venue_password = excluded.venue_password;
+    do update set venue_password = excluded.venue_password,
+                  venue_answers  = excluded.venue_answers;
 end;
 $$;
 
-revoke all on function quiz_set_venue_password(text, text) from public;
-grant execute on function quiz_set_venue_password(text, text) to authenticated;
+revoke all on function quiz_set_venue_password(text, text, text[]) from public;
+grant execute on function quiz_set_venue_password(text, text, text[]) to authenticated;
 
 
 -- ---------------------------------------------------------
@@ -293,10 +353,11 @@ grant execute on function quiz_set_venue_password(text, text) to authenticated;
 --     cannot, checks the venue password inside the database, and
 --     returns just the new team.
 --
---     The password comparison is trimmed and case-insensitive on
---     purpose: it is a word shouted across a room or printed on
---     a table card, and "Bellchamber" failing because someone
---     typed "bellchamber " is a person who cannot play.
+--     The comparison is deliberately forgiving — see
+--     quiz_normalise_answer above. It is a word shouted across a
+--     room, printed on a table card, or the answer to a riddle on
+--     the big screen, and being turned away over a capital letter
+--     or a full stop is a person who cannot play.
 -- ---------------------------------------------------------
 create or replace function quiz_join_team(p_code text, p_name text, p_password text default '')
 returns quiz_teams
@@ -306,6 +367,8 @@ set search_path = public
 as $$
 declare
   v_required text;
+  v_answers  text[];
+  v_given    text;
   v_phase    text;
   v_name     text := btrim(coalesce(p_name, ''));
   v_team     quiz_teams;
@@ -327,13 +390,25 @@ begin
     raise exception 'SESSION_ENDED';
   end if;
 
-  select k.venue_password
-    into v_required
+  select k.venue_password, k.venue_answers
+    into v_required, v_answers
     from quiz_session_keys k
    where k.session_code = upper(btrim(p_code));
 
+  v_given := quiz_normalise_answer(p_password);
+
   if coalesce(btrim(v_required), '') <> '' then
-    if lower(btrim(coalesce(p_password, ''))) <> lower(btrim(v_required)) then
+    -- The main answer, plus any other wording the host said to
+    -- accept. All compared normalised, none of them ever leaving
+    -- the database.
+    if v_given = '' or v_given <> all (
+         array_remove(
+           array(select quiz_normalise_answer(x)
+                   from unnest(array[v_required] || coalesce(v_answers, '{}')) as x),
+           ''
+         )
+       )
+    then
       raise exception 'BAD_PASSWORD';
     end if;
   end if;

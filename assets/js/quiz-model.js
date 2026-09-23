@@ -432,6 +432,22 @@
     return 3;
   }
 
+  /* Does `given` match any of `accepted`, after normalisation?
+     Used for venue answers, where a riddle has several right
+     wordings. Exact after normalisation — no typo tolerance,
+     because unlike a quiz answer nobody is watching to overrule
+     it, and letting near-misses in defeats the point of a gate.
+     The database does the same comparison in
+     quiz_normalise_answer; the two must agree. */
+  Model.matchesAnswerList = function (given, accepted) {
+    var g = normaliseText(given);
+    if (!g) return false;
+    return [].concat(accepted || []).some(function (a) {
+      var n = normaliseText(a);
+      return n && n === g;
+    });
+  };
+
   Model.matchesText = function (given, accepted, acceptClose) {
     var g = normaliseText(given);
     if (!g) return false;

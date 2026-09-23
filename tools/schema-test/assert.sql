@@ -101,8 +101,36 @@ values ('ABCDE', 'q1', 'Secret Case',
        ('OVER1', 'q1', 'Finished Case',
         '{"phase":"ended","accepting":false}'::jsonb);
 
-insert into quiz_session_keys (session_code, venue_password)
-values ('ABCDE', 'Lamplight'), ('OVER1', 'Lamplight');
+insert into quiz_session_keys (session_code, venue_password, venue_answers)
+values ('ABCDE', 'Lamplight', '{}'), ('OVER1', 'Lamplight', '{}');
+
+
+-- ---------------------------------------------------------
+-- How an answer is normalised before comparison
+-- ---------------------------------------------------------
+select ck('normalising lowercases and trims',
+  quiz_normalise_answer('  Lamplight  ') = 'lamplight');
+
+select ck('normalising drops punctuation',
+  quiz_normalise_answer('A Keyboard.') = quiz_normalise_answer('keyboard'));
+
+select ck('normalising drops a leading article',
+  quiz_normalise_answer('the case') = quiz_normalise_answer('case'));
+
+select ck('normalising treats & as and',
+  quiz_normalise_answer('Holmes & Watson') = quiz_normalise_answer('holmes and watson'));
+
+select ck('normalising strips common accents',
+  quiz_normalise_answer('café') = quiz_normalise_answer('cafe'));
+
+select ck('normalising collapses runs of spaces',
+  quiz_normalise_answer('your   shadow') = 'your shadow');
+
+select ck('normalising does NOT make different answers equal',
+  quiz_normalise_answer('keyboard') <> quiz_normalise_answer('piano'));
+
+select ck('normalising an empty answer gives an empty string',
+  quiz_normalise_answer('   ') = '' and quiz_normalise_answer(null) = '');
 
 
 -- ---------------------------------------------------------
@@ -160,11 +188,55 @@ select ck_allowed('joining with the right password works',
 select ck_allowed('capitals and stray spaces in the password are forgiven',
   $$select quiz_join_team('ABCDE', 'The Yard', '  LAMPLIGHT  ')$$);
 
+select ck_allowed('punctuation in the answer is forgiven',
+  $$select quiz_join_team('ABCDE', 'Punctuators', 'Lamplight!')$$);
+
 select ck_refused('the same team name cannot join twice',
   $$select quiz_join_team('ABCDE', 'baker street', 'Lamplight')$$, 'NAME_TAKEN');
 
+/* Named rather than counted: a count breaks every time a test
+   above adds another legitimate player, and it was never the
+   thing being asserted. */
 select ck('the gatecrashers never got in',
-  (select count(*) = 2 from quiz_teams where session_code = 'ABCDE'));
+  (select count(*) = 0 from quiz_teams
+    where session_code = 'ABCDE' and name = 'Gatecrashers'));
+
+
+-- ---------------------------------------------------------
+-- A riddle as the door
+-- ---------------------------------------------------------
+reset role;
+insert into quiz_sessions (code, quiz_id, quiz_title, state)
+values ('RIDL1', 'q1', 'Riddle Case', '{"phase":"lobby","venueRiddle":"What has many keys but cannot open a single lock?"}'::jsonb);
+insert into quiz_session_keys (session_code, venue_password, venue_answers)
+values ('RIDL1', 'a piano', array['piano', 'the piano']);
+set local role anon;
+do $$ begin perform set_config('test.uid', '', true); end $$;
+
+select ck('the riddle IS readable by a player, because it is on the screen',
+  (select state ->> 'venueRiddle' is not null from quiz_sessions where code = 'RIDL1'));
+
+select ck('but its answer is not',
+  (select count(*) = 0 from quiz_session_keys where session_code = 'RIDL1'));
+
+select ck_allowed('solving the riddle gets you in',
+  $$select quiz_join_team('RIDL1', 'Solvers', 'a piano')$$);
+
+select ck_allowed('a different right wording also gets you in',
+  $$select quiz_join_team('RIDL1', 'Terse', 'Piano')$$);
+
+select ck_allowed('and one with a stray article and a full stop',
+  $$select quiz_join_team('RIDL1', 'Fussy', 'The Piano.')$$);
+
+select ck_refused('a wrong answer does not',
+  $$select quiz_join_team('RIDL1', 'Guessers', 'keyboard')$$, 'BAD_PASSWORD');
+
+select ck_refused('nor does an empty one',
+  $$select quiz_join_team('RIDL1', 'Blanks', '   ')$$, 'BAD_PASSWORD');
+
+select ck_refused('nor the riddle itself, typed back',
+  $$select quiz_join_team('RIDL1', 'Parrots', 'What has many keys but cannot open a single lock?')$$,
+  'BAD_PASSWORD');
 
 
 -- ---------------------------------------------------------
@@ -235,6 +307,9 @@ select ck('the host''s marks actually stick',
 select ck_allowed('the host can set a venue password',
   $$select quiz_set_venue_password('ABCDE', 'NewWord')$$);
 
+select ck_allowed('the host can set a riddle answer with alternates',
+  $$select quiz_set_venue_password('RIDL1', 'your shadow', array['shadow', 'a shadow'])$$);
+
 select ck_refused('the host cannot write the keys table directly',
   $$insert into quiz_session_keys (session_code, venue_password) values ('ZZZZZ','x')$$,
   'row-level security');
@@ -255,6 +330,12 @@ select ck_refused('the old password stops working once it is changed',
 
 select ck_allowed('the new password works',
   $$select quiz_join_team('ABCDE', 'Stragglers', 'NewWord')$$);
+
+select ck_allowed('an alternate wording the host added works too',
+  $$select quiz_join_team('RIDL1', 'Shadows', 'a shadow')$$);
+
+select ck_refused('and the riddle’s old answer no longer does',
+  $$select quiz_join_team('RIDL1', 'Stale', 'piano')$$, 'BAD_PASSWORD');
 
 reset role;
 

@@ -92,8 +92,29 @@ with the code already filled in, so all anyone types is **their name and the ven
 password**.
 
 Set the password on the control room's setup screen before you start the show, or
-leave it empty for no password at all. **Suggest one** gives you something easy to
-shout across a noisy room.
+leave it empty for no password at all.
+
+### Or make the door a riddle
+
+Instead of a word, put a **riddle** on the big screen and make its answer the
+password. **Suggest a riddle** fills in a classic with its answer and the other
+wordings people actually type.
+
+This is a better door than a word, and not only because it is more fun: the riddle
+is safe to publish and the answer is not. The riddle travels in the state every
+screen reads, because the whole room has to read it off a projector. The answer
+never leaves the database. So a photograph of the screen — or someone reading the
+session data straight out of the browser — still leaves you with a riddle to solve.
+
+The control room keeps the answer in front of you for anyone who gets stuck, and
+with a riddle set it deliberately leaves the answer **out** of the projection link,
+which would otherwise print the solution directly beneath its own riddle.
+
+Answers are compared after normalising: capitals, punctuation, accents, `&` versus
+"and", and a leading "the"/"a"/"an" all stop mattering, so `A Keyboard.` gets in on
+`keyboard` with no help. Add other wordings under **Also accept**. It is exact after
+that, not fuzzy — unlike a quiz answer there is nobody standing there to overrule a
+near miss, and letting them through defeats the point of a door.
 
 The typed route stays on screen next to the QR on purpose. A phone camera that will
 not focus in a dark venue must not be the end of somebody's night.
@@ -103,10 +124,12 @@ not focus in a dark venue must not be the end of somebody's night.
 The point of a venue password is that only people in your room can play. That only
 holds if the password cannot be looked up, so:
 
-- It is stored in `quiz_session_keys`, a table with **no policies at all**. Row
-  level security is on and nothing grants access, so the table is unreachable by
-  every client — player, control room, and signed-in host alike. Nobody reads a
-  venue password back out; you set a new one.
+- The password, and any alternate wordings, are stored in `quiz_session_keys`, a
+  table with **no policies at all**. Row level security is on and nothing grants
+  access, so the table is unreachable by every client — player, control room, and
+  signed-in host alike. Nobody reads a venue password back out; you set a new one.
+  The riddle is not kept there: it is public by design and rides in the session
+  state.
 - It is reached only by two `security definer` functions, which run as their owner
   and so sit outside those policies: `quiz_set_venue_password()` writes one, and
   `quiz_join_team()` checks one while joining. Players have no insert permission on
@@ -391,18 +414,18 @@ again. Worth doing during setup rather than discovering it on question one.
 ## Tests
 
 ```bash
-node test/engine.test.js    # 53 checks — scoring, redaction, phases
+node test/engine.test.js    # 58 checks — scoring, redaction, phases
 node test/qr.test.js        # 28 checks — the QR encoder, by decoding it back
 node test/pack.test.js      # 14 checks — the starter pack's content
-bash tools/test-schema.sh   # 42 checks — the database, against a real PostgreSQL
+bash tools/test-schema.sh   # 62 checks — the database, against a real PostgreSQL
 ```
 
-137 checks over the parts that quietly ruin a live show if they are wrong. The first
+162 checks over the parts that quietly ruin a live show if they are wrong. The first
 three run in plain node with no browser and no network:
 
 - **engine** — scoring for every input mode, the redaction guarantees, tie handling,
-  phase navigation, validation, clock-skew correction, the live vote payload and the
-  results export.
+  phase navigation, validation, clock-skew correction, the live vote payload, venue
+  answer matching, and the results export.
 - **qr** — every matrix decoded back through an independently written reader, with
   the Reed-Solomon syndromes checked at zero, plus the format information, version
   information, capacities and data-module counts cross-checked against the published
@@ -426,8 +449,8 @@ passing for the wrong reason.
 
 The browser tests that drive whole shows end to end are not in the repository,
 because they need Playwright and a stand-in for Supabase. They were used to verify
-this build — 33 checks in local mode and 50 in cloud mode, covering five devices
-signing up with the venue password, a wrong password being refused, the live vote
+this build — 33 checks in local mode and 55 in cloud mode, covering five devices
+signing up by solving a riddle, a wrong answer being refused, the live vote
 split matching the votes cast, and the redaction checks run against the live pushed
 state rather than against the pixels. The findings are in the commit history.
 

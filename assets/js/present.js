@@ -305,13 +305,26 @@
         UI.el('p.stage__joinlabel', { text: 'code' }),
         UI.el('p.stage__joincode', { text: state.code })
       ]),
-      venuePassword
+      /* A riddle is shown below, in full, so it does not belong in
+         this row of short values — and when there is one, the
+         password must NOT appear anywhere on this screen. */
+      (venuePassword && !state.venueRiddle)
         ? UI.el('div', {}, [
             UI.el('p.stage__joinlabel', { text: 'password' }),
             UI.el('p.stage__joincode', { text: venuePassword })
           ])
         : null
     ]));
+
+    /* The riddle, if tonight's door is one. It comes from the
+       pushed state rather than the link, because unlike an answer
+       it is meant to be read by everyone. */
+    if (state.venueRiddle) {
+      children.push(UI.el('div.stage__riddle', {}, [
+        UI.el('p.stage__joinlabel', { text: 'the password is the answer to this' }),
+        UI.el('p.stage__riddle-text', { text: state.venueRiddle })
+      ]));
+    }
 
     children.push(UI.el('p.stage__explain', {
       id: 'roster-waiting', text: 'Waiting for the first player…'

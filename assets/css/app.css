@@ -343,6 +343,22 @@ img, video{ max-width: 100%; display: block; }
 .check__text{ color: var(--text-secondary); }
 .check input:checked ~ .check__text{ color: var(--text-primary); }
 
+/* A riddle on the sign-up form. Set as something to read rather
+   than a field label: roomier line height, the plate's cream, and
+   a gold rule to mark it as the thing standing between the reader
+   and the game. */
+.riddle{
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  background: var(--bg-inset);
+  color: var(--text-primary);
+  font-size: var(--fs-400);
+  line-height: var(--lh-normal);
+  text-wrap: pretty;
+}
+
 .field-grid{
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));

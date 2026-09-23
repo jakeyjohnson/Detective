@@ -222,6 +222,13 @@
       quizSubtitle: quiz.subtitle || '',
       joinUrl: ctx.joinUrl || '',
 
+      /* The riddle, not its answer. Safe to publish: it is written
+         to be read by the whole room off a projector. The answer
+         never leaves the database, which is what makes a riddle a
+         better door than a word — a photograph of the screen
+         still leaves you with a riddle to solve. */
+      venueRiddle: ctx.venueRiddle || '',
+
       phase: phase,
       cursor: cursor,
       number: entry ? entry.number : 0,

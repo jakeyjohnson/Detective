@@ -35,6 +35,8 @@
     code: null,
     quiz: null,
     venuePassword: '',
+    venueRiddle: '',
+    venueAlsoAccept: [],
     cursor: -1,
     phase: P.LOBBY,
     accepting: false,
@@ -104,30 +106,71 @@
 
       var preselect = UI.param('quiz');
 
-      /* One password for the night, set here rather than in a
-         config file, because it changes per venue and per show and
-         the host is the person who knows it. */
+      /* Set here rather than in a config file, because it changes
+         per venue and per show and the host is the person who
+         knows it. */
+      var riddleInput = UI.el('textarea.textarea', {
+        id: 'venue-riddle', rows: 2, maxlength: 240,
+        placeholder: 'Leave empty to just use a password',
+        'aria-label': 'Riddle shown on the big screen'
+      });
+
       var venueInput = UI.el('input.input.input--mono', {
         type: 'text', id: 'venue-password', maxlength: 60,
-        placeholder: 'Leave empty for no password',
-        'aria-label': 'Venue password for tonight'
+        placeholder: 'Leave empty for no password at all',
+        'aria-label': 'The answer that lets people in'
+      });
+
+      var altInput = UI.el('input.input', {
+        type: 'text', id: 'venue-also', maxlength: 200,
+        placeholder: 'other wordings, separated by commas',
+        'aria-label': 'Other answers to accept'
       });
 
       var venuePanel = UI.el('div.panel.stack', {}, [
         UI.el('div.row.row--between', {}, [
-          UI.el('span.label.label--bright', { text: 'Venue password' }),
+          UI.el('span.label.label--bright', { text: 'Getting in' }),
           UI.el('button.btn.btn--sm', {
-            type: 'button', text: 'Suggest one',
-            onclick: function () { venueInput.value = suggestPassword(); }
+            type: 'button', text: 'Suggest a riddle',
+            onclick: function () {
+              var r = suggestRiddle();
+              riddleInput.value = r.riddle;
+              venueInput.value = r.answer;
+              altInput.value = r.also.join(', ');
+            }
           })
         ]),
-        venueInput,
+
+        UI.el('div.field', {}, [
+          UI.el('label.label', { for: 'venue-riddle', text: 'Riddle for the big screen' }),
+          riddleInput,
+          UI.el('p.field__hint', {
+            text: 'Goes on the screen in place of the password. The answer is what gets ' +
+                  'people in, and it never appears on screen — so a photograph of the ' +
+                  'projector is not a way in.'
+          })
+        ]),
+
+        UI.el('div.field', {}, [
+          UI.el('label.label', { for: 'venue-password', text: 'The answer' }),
+          venueInput
+        ]),
+
+        UI.el('div.field', {}, [
+          UI.el('label.label', { for: 'venue-also', text: 'Also accept' }),
+          altInput,
+          UI.el('p.field__hint', {
+            text: 'A riddle has more than one right wording. Capitals, punctuation and a ' +
+                  'leading "the" or "a" are already ignored, so "A Keyboard." gets in on ' +
+                  '"keyboard" without help.'
+          })
+        ]),
+
         UI.el('p.field__hint', {
           text: Store.isCloud
-            ? 'Players type this when they sign up, along with their name. Put it on the ' +
-              'screen or a table card. It stops someone who got the join code second-hand ' +
-              'from playing along from home. Capitals and stray spaces are ignored.'
-            : 'Local mode has no player devices, so this is not used tonight. ' +
+            ? 'Players answer this when they sign up, with their name. It stops someone ' +
+              'who got the join code second-hand from playing along from home.'
+            : 'Local mode has no player devices, so none of this is used tonight. ' +
               'See README.md to switch them on.'
         })
       ]);
@@ -151,7 +194,13 @@
               type: 'button',
               text: 'Start show',
               disabled: !count,
-              onclick: function () { startShow(item.id, venueInput.value); }
+              onclick: function () {
+                startShow(item.id, {
+                  password: venueInput.value,
+                  riddle: riddleInput.value,
+                  alsoAccept: altInput.value.split(',')
+                });
+              }
             })
           ])
         ]);
@@ -159,24 +208,52 @@
     });
   }
 
-  /* Suggested passwords are memorable and easy to shout across a
-     noisy room, which matters more here than entropy — the thing
-     it defends against is someone playing from home, not an
-     attacker with a word list. */
-  var SUGGESTIONS = [
-    'lamplight', 'alibi', 'redherring', 'cluedo', 'magnifier', 'stakeout',
-    'moriarty', 'gaslight', 'whodunnit', 'fingerprint', 'coldcase', 'inkwell'
+  /* Riddles with one clear answer and the other wordings people
+     actually type. Classics on purpose: a riddle nobody can solve
+     is a queue at the door, and the job here is a door policy,
+     not a puzzle round — that is what the quiz is for. */
+  var RIDDLES = [
+    { riddle: 'I have keys but open no locks. I have space but no room. You can enter, but you cannot go outside. What am I?',
+      answer: 'keyboard', also: ['a keyboard', 'computer keyboard'] },
+    { riddle: 'What can be opened, closed, cracked and solved?',
+      answer: 'a case', also: ['case', 'the case'] },
+    { riddle: 'The more of me you take, the more you leave behind. What am I?',
+      answer: 'footsteps', also: ['footprints', 'steps', 'footstep'] },
+    { riddle: 'What has a face and two hands but no arms or legs?',
+      answer: 'a clock', also: ['clock', 'a watch', 'watch'] },
+    { riddle: 'I have cities but no houses, forests but no trees, and water but no fish. What am I?',
+      answer: 'a map', also: ['map'] },
+    { riddle: 'What can travel all around the world while staying in one corner?',
+      answer: 'a stamp', also: ['stamp', 'postage stamp'] },
+    { riddle: 'What gets wetter the more it dries?',
+      answer: 'a towel', also: ['towel'] },
+    { riddle: 'I follow you all day but disappear at night. What am I?',
+      answer: 'your shadow', also: ['shadow', 'a shadow', 'my shadow'] },
+    { riddle: 'What has many keys but cannot open a single lock?',
+      answer: 'a piano', also: ['piano'] },
+    { riddle: 'I am always coming but never arrive. What am I?',
+      answer: 'tomorrow', also: ['the future', 'future'] },
+    { riddle: 'What can you catch but never throw?',
+      answer: 'a cold', also: ['cold', 'the flu', 'a bus'] },
+    { riddle: 'I am taken from a mine and shut in a wooden case, and yet almost everyone uses me. What am I?',
+      answer: 'pencil lead', also: ['a pencil', 'pencil', 'graphite', 'lead'] }
   ];
-  function suggestPassword() {
-    return SUGGESTIONS[Math.floor(Math.random() * SUGGESTIONS.length)];
+
+  function suggestRiddle() {
+    return RIDDLES[Math.floor(Math.random() * RIDDLES.length)];
   }
 
-  function startShow(quizId, venuePassword) {
+  function startShow(quizId, entry) {
+    var e = entry || {};
     Store.quizzes.get(quizId).then(function (quiz) {
       if (!quiz) throw new Error('That case has gone missing.');
 
       show.quiz = quiz;
-      show.venuePassword = String(venuePassword == null ? '' : venuePassword).trim();
+      show.venuePassword = String(e.password == null ? '' : e.password).trim();
+      show.venueRiddle = String(e.riddle == null ? '' : e.riddle).trim();
+      show.venueAlsoAccept = [].concat(e.alsoAccept || [])
+        .map(function (a) { return String(a).trim(); })
+        .filter(Boolean);
       show.code = Model.makeCode(5);
       show.cursor = -1;
       show.phase = P.LOBBY;
@@ -189,14 +266,16 @@
         code: show.code,
         quizId: quiz.id,
         quizTitle: quiz.title,
-        venuePassword: show.venuePassword,     // local driver keeps it here
+        venuePassword: show.venuePassword,     // local driver keeps these
+        venueAnswers: show.venueAlsoAccept,
         state: buildState()
       });
     }).then(function () {
       /* Cloud mode stores it in its own table, which has no read
          policy at all — so it is set, never fetched. */
       if (Store.isCloud && Store.session.setVenuePassword) {
-        return Store.session.setVenuePassword(show.code, show.venuePassword);
+        return Store.session.setVenuePassword(
+          show.code, show.venuePassword, show.venueAlsoAccept);
       }
     }).then(function () {
       /* Put the code in the URL so a reload rejoins this show
@@ -229,10 +308,13 @@
 
         show.quiz = quiz;
         show.code = code;
-        /* Deliberately not recoverable: the password is write-only
-           by design. After a reload the control room can no longer
-           display it, and says so rather than showing a blank. */
+        /* The answer is write-only by design, so a reload cannot
+           get it back and the control room says so rather than
+           showing a blank. The riddle is public — it is on the big
+           screen — so that does come back with the state. */
         show.venuePassword = '';
+        show.venueAlsoAccept = [];
+        show.venueRiddle = (st && st.venueRiddle) || '';
 
         /* Pick the show back up exactly where the pushed state
            says it was — not at the start. */
@@ -334,7 +416,11 @@
       adjustments: show.adjustments,
       timer: show.timer,
       showName: cfg.showName || '',
-      joinUrl: joinUrl()
+      joinUrl: joinUrl(),
+      /* Public on purpose. The riddle is meant to be read by the
+         room; the answer is what must not travel, and that stays
+         in the database. */
+      venueRiddle: show.venueRiddle
     });
   }
 
@@ -835,12 +921,19 @@
   function renderLinks() {
     var base = window.location.href.replace(/host\.html.*$/, '');
 
-    /* The projection link carries the venue password so the big
-       screen can show it. The password is NOT in the pushed state,
-       so a stranger opening the projection with only the code
-       sees no password. */
+    /* Without a riddle, the projection link carries the password
+       so the big screen can show it; the password is not in the
+       pushed state, so a stranger opening the projection with only
+       the code sees nothing.
+
+       WITH a riddle, the link carries nothing. The riddle goes on
+       screen from the state and the answer stays in the database —
+       putting the answer in this link would print it under its own
+       riddle. */
     var presentHref = 'present.html?code=' + show.code +
-      (show.venuePassword ? '&vp=' + encodeURIComponent(show.venuePassword) : '');
+      ((show.venuePassword && !show.venueRiddle)
+        ? '&vp=' + encodeURIComponent(show.venuePassword)
+        : '');
 
     var links = [
       { label: 'Projection screen', href: presentHref, hint: 'Put this on the projector, then press F for full screen' },
@@ -925,20 +1018,38 @@
       })
     ]));
 
+    if (show.venueRiddle) {
+      children.push(UI.el('div.stack.stack--tight', {}, [
+        UI.el('span.label', { text: 'Riddle on the screen' }),
+        UI.el('p', { style: 'margin: 0; font-size: var(--fs-200)', text: show.venueRiddle })
+      ]));
+    }
+
     children.push(UI.el('div.row.row--between', {}, [
-      UI.el('span.label', { text: 'Venue password' }),
+      UI.el('span.label', { text: show.venueRiddle ? 'The answer' : 'Venue password' }),
       UI.el('strong.mono', {
         style: 'color: ' + (show.venuePassword ? 'var(--text-accent)' : 'var(--text-faint)'),
         text: show.venuePassword || 'not shown after a reload'
       })
     ]));
 
+    if (show.venueAlsoAccept.length) {
+      children.push(UI.el('div.row.row--between', {}, [
+        UI.el('span.label', { text: 'Also accepted' }),
+        UI.el('span.mono', { style: 'font-size: var(--fs-100); color: var(--text-secondary)',
+          text: show.venueAlsoAccept.join(', ') })
+      ]));
+    }
+
     children.push(UI.el('p.field__hint', {
-      text: show.venuePassword
-        ? 'The projection link above carries the password so the big screen can show it. ' +
-          'It is never in the data the screens read, so it cannot be looked up from the code.'
-        : 'Set at the start of the show. It is stored write-only, so the control room ' +
+      text: !show.venuePassword
+        ? 'Set at the start of the show. It is stored write-only, so the control room ' +
           'cannot read it back — start a new show to change it.'
+        : (show.venueRiddle
+            ? 'The riddle goes on the big screen; the answer never does, and is not in the ' +
+              'data any screen reads. Keep it here for anyone who gets stuck.'
+            : 'The projection link above carries the password so the big screen can show it. ' +
+              'It is never in the data the screens read, so it cannot be looked up from the code.')
     }));
 
     return UI.el('div.panel.stack', {}, children);

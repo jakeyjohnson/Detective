@@ -78,7 +78,8 @@
       </div>
 
       <div class="field" id="password-field">
-        <label class="label" for="venue">Venue password</label>
+        <label class="label" for="venue" id="venue-label">Venue password</label>
+        <p class="riddle is-hidden" id="venue-riddle"></p>
         <input class="input input--mono" id="venue" name="venue" type="text"
                autocomplete="off" autocapitalize="none" spellcheck="false"
                maxlength="60" aria-describedby="venue-hint">
@@ -107,7 +108,7 @@
     <p class="label is-hidden" id="roles-heading"
        style="margin: var(--sp-6) 0 var(--sp-3)">Open one of these</p>
 
-    <div class="role-grid">
+    <div class="role-grid" id="role-grid">
       <a class="role-card" href="host.html">
         <h3>Control room</h3>
         <p>Run the show. Private, host only.</p>
@@ -169,12 +170,23 @@
   /* The code arrives in the URL from the QR on the screen, in
      which case there is nothing to type and the field is replaced
      by a confirmation of which game this is. */
+  /* Set once the session says tonight's door is a riddle, so the
+     wording of a refusal matches what was actually asked. */
+  var hasRiddle = false;
+
   var prefill = (UI.param('code', '') || '').toUpperCase().slice(0, 5);
   if (prefill) {
     codeInput.value = prefill;
     UI.$('#code-field').classList.add('is-hidden');
     UI.$('#code-shown').textContent = prefill;
     UI.$('#code-confirmed').classList.remove('is-hidden');
+
+    /* Somebody who arrived here by scanning is a player. Offering
+       them the control room under the form is noise at best, and
+       at worst an invitation to go and have a look. The cards stay
+       for anyone who lands on the bare page wondering what this
+       is. */
+    UI.$('#role-grid').classList.add('is-hidden');
   }
 
   /* In local mode there is no sign-up to offer, so the form is
@@ -194,6 +206,25 @@
     v = v.replace(/0/g, 'O').replace(/1/g, 'I').replace(/[IO]/g, '');
     codeInput.value = v.slice(0, 5);
   });
+
+  /* If tonight's door is a riddle rather than a word, show the
+     riddle here as well as on the big screen — people sign up
+     with their heads down and their phone in front of them, not
+     looking up at the projector. */
+  if (prefill) {
+    Store.session.read(prefill)
+      .then(function (session) {
+        var riddle = session && session.state && session.state.venueRiddle;
+        if (!riddle) return;
+        hasRiddle = true;
+        UI.$('#venue-label').textContent = 'Answer the riddle';
+        UI.$('#venue-riddle').textContent = riddle;
+        UI.$('#venue-riddle').classList.remove('is-hidden');
+        UI.$('#venue-hint').textContent =
+          'Capitals, punctuation and a leading "the" or "a" do not matter.';
+      })
+      .catch(function () { /* the form still works without it */ });
+  }
 
   if (!prefill) codeInput.focus(); else teamInput.focus();
 
@@ -242,14 +273,22 @@
         window.location.href = 'play.html?code=' + encodeURIComponent(code);
       })
       .catch(function (err) {
-        fail(err && err.message ? err.message : 'Could not sign in. Try again.');
+        var message = (err && err.message) || 'Could not sign in. Try again.';
+        var wrongAnswer = /venue password/i.test(message);
+
+        /* Being told the "venue password" is wrong makes no sense
+           when what you were asked was a riddle. */
+        if (wrongAnswer && hasRiddle) {
+          message = 'That is not the answer. Have another go.';
+        }
+
+        fail(message);
         joinBtn.disabled = false;
         joinBtn.textContent = 'Sign in and play';
 
-        /* A wrong password is the one worth re-focusing: it is the
-           field most likely mistyped and the only one the player
-           can fix without being told anything else. */
-        if (/venue password/i.test(String(err && err.message))) {
+        /* The one field worth re-focusing: the most likely mistyped,
+           and the only one the player can fix unaided. */
+        if (wrongAnswer) {
           venueInput.select();
           venueInput.focus();
         }

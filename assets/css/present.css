@@ -376,6 +376,30 @@ body.stage{
   margin: 0;
 }
 
+/* The riddle on the lobby screen. Set on the cream plate, because
+   a room has to read a whole sentence off it rather than glance
+   at a five-character code, and cream on dark is the most legible
+   thing this system has. Capped in height so a long riddle cannot
+   push the QR code off the screen. */
+.stage__riddle{
+  max-width: min(100%, 52rem);
+  padding: clamp(var(--sp-3), 2vh, var(--sp-5)) clamp(var(--sp-4), 3vw, var(--sp-6));
+  background: var(--bg-plate);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-md);
+  text-align: center;
+}
+.stage__riddle .stage__joinlabel{ color: rgba(21,18,10,0.55); }
+.stage__riddle-text{
+  margin: 0;
+  font-family: var(--font-body);
+  font-weight: var(--fw-medium);
+  font-size: clamp(0.95rem, min(1.6vw, 3vh), 2.25rem);
+  line-height: var(--lh-snug);
+  color: var(--text-on-plate);
+  text-wrap: pretty;
+}
+
 /* A real logo on the lobby screen. Capped by height in viewport
    units so a tall logo cannot push the join code off the screen,
    which is the one thing the lobby has to show. */

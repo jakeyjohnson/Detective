@@ -96,13 +96,11 @@
     return new Error(JOIN_ERRORS[code] || 'Could not join. Try again.');
   }
 
-  /* Trimmed and case-insensitive, matching the database function.
-     A venue password is a word shouted across a room, not a
-     secret typed carefully. */
-  function samePassword(given, required) {
-    var a = String(given == null ? '' : given).trim().toLowerCase();
-    var b = String(required == null ? '' : required).trim().toLowerCase();
-    return a === b;
+  /* Matches the database's quiz_normalise_answer. A venue answer
+     is a word shouted across a room or the solution to a riddle
+     on the big screen, not a secret typed carefully. */
+  function samePassword(given, accepted) {
+    return Model.matchesAnswerList(given, [].concat(accepted || []));
   }
 
   function emit(kind, code, payload) {
@@ -198,10 +196,13 @@
          from and only one machine involved, so the check is a
          convenience rather than a control — said plainly in the
          README rather than implied to be more. */
-      setVenuePassword: function (code, password) {
+      setVenuePassword: function (code, password, alsoAccept) {
         var s = lsGet(LS_SESSION + code, null);
         if (!s) return Promise.reject(new Error('No such session: ' + code));
         s.venuePassword = String(password == null ? '' : password).trim();
+        s.venueAnswers = [].concat(alsoAccept || []).map(function (a) {
+          return String(a == null ? '' : a).trim();
+        }).filter(Boolean);
         lsSet(LS_SESSION + code, s);
         return Promise.resolve();
       },
@@ -214,7 +215,8 @@
         }
 
         var required = session.venuePassword || '';
-        if (required && !samePassword(password, required)) {
+        var accepted = [required].concat(session.venueAnswers || []).filter(Boolean);
+        if (required && !samePassword(password, accepted)) {
           return Promise.reject(joinError('BAD_PASSWORD'));
         }
 
@@ -516,10 +518,13 @@
            read a venue password back — and an upsert against an
            unreadable table cannot work anyway, because ON CONFLICT
            DO UPDATE has to read the row it conflicts with. */
-        setVenuePassword: function (code, password) {
+        setVenuePassword: function (code, password, alsoAccept) {
           return db.rpc('quiz_set_venue_password', {
             p_code: String(code || '').trim().toUpperCase(),
-            p_password: String(password == null ? '' : password)
+            p_password: String(password == null ? '' : password),
+            p_answers: [].concat(alsoAccept || []).map(function (a) {
+              return String(a == null ? '' : a).trim();
+            }).filter(Boolean)
           }).then(function (res) {
             if (res.error) {
               if (String(res.error.message || '').indexOf('NOT_SIGNED_IN') !== -1) {
